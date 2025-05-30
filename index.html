@@ -7,11 +7,22 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background: #2a2a2a;
       padding: 20px;
+      color: #fff;
+    }
+    .logo {
+      margin-bottom: 25px;
+      margin-top: 60px;
+      margin-left: 5px;
+      text-align: left;
+      max-width: 500px;
+      display: block;
+      max-width: 250px;
     }
     .tool-container {
       background: #fff;
+      color: #000;
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 40px;
@@ -36,6 +47,8 @@
   </style>
 </head>
 <body>
+  <img src="logo.png" alt="Expert NIL Logo" class="logo" />
+
   <div class="tool-container">
     <h2>High School Valuation Tool</h2>
     <label>Position:</label><br />
@@ -136,7 +149,7 @@
       const mult = getMultiplier(pos);
       const market = basePerYear * mult * years;
       document.getElementById('hsOutput').innerText =
-        `Base Value: $${base.toLocaleString()} | High-End Value: $${market.toLocaleString()}`;
+        "Base Value: $" + base.toLocaleString() + " | High-End Value: $" + market.toLocaleString();
     }
 
     function runTransferPortal() {
@@ -147,7 +160,7 @@
       const mult = getMultiplier(pos);
       const market = base * mult * years;
       document.getElementById('tpOutput').innerText =
-        `Market Value: $${market.toLocaleString()}`;
+        "Market Value: $" + market.toLocaleString();
     }
   </script>
 </body>
