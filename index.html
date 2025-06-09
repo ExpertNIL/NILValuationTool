@@ -3,38 +3,169 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Expert NIL Valuation Tool</title>
-
-  <!-- Open Graph Meta Tags -->
-  <meta property="og:title" content="Expert NIL Valuation Tool" />
-  <meta property="og:description" content="Calculate high school and transfer portal player valuations." />
-  <meta property="og:image" content="https://expertnil.github.io/NILValuationTool/social-preview.png" />
-  <meta property="og:url" content="https://expertnil.github.io/NILValuationTool/" />
-  <meta property="og:type" content="website" />
-
+  <title>Athlete Valuation Tool</title>
   <style>
-    
-@font-face {
-  font-family: 'TT Chocolates';
-  src: url('TT Chocolates Trial Bold.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-}
-body {
-  background: #2a2a2a;
-  font-family: 'TT Chocolates', Arial, sans-serif;
-}
-
+    body {
+      font-family: Arial, sans-serif;
+      background: #2a2a2a;
+      padding: 20px;
+      color: #fff;
+    }
     .logo {
       margin-top: 10px;
       margin-bottom: 13px;
+      margin-bottom: 15px;
       margin-left: 5px;
-      display: block;
+      text-align: left;
       max-width: 500px;
+      display: block;
+      max-width: 250px;
     }
-  </style>
+    .tool-container {
+      background: #fff;
+      color: #000;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 40px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .tool-container h2 {
+      margin-top: 10px;
+      margin-bottom: 13px;
+    }
+    input {
+      padding: 8px;
+      margin: 5px;
+      width: 200px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-top: 10px;
+    }
+    .result {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  
+.valuation-result {
+  font-size: 32px; /* double typical 16px */
+  font-weight: bold;
+  color: #ffffff;
+  margin-top: 20px;
+}
+
+</style>
 </head>
 <body>
   <img src="logo.png" alt="Expert NIL Logo" class="logo" />
+
+  <div class="tool-container">
+    <h2>High School Valuation Tool</h2>
+    <label>Position:</label><br />
+    <input type="text" id="hsPosition" placeholder="e.g., QB" /><br />
+    <label>Player Rating:</label><br />
+    <input type="number" step="0.0001" id="hsRating" placeholder="e.g., 0.992" /><br />
+    <button onclick="runHighSchool()">Calculate</button>
+    <div class="result valuation-result" id="hsOutput"></div>
+  </div>
+
+  <div class="tool-container">
+    <h2>Transfer Portal Valuation Tool</h2>
+    <label>Position:</label><br />
+    <input type="text" id="tpPosition" placeholder="e.g., WR" /><br />
+    <label>Overall Rating:</label><br />
+    <input type="number" id="tpOverall" placeholder="e.g., 95" /><br />
+    <button onclick="runTransferPortal()">Calculate</button>
+    <div class="result valuation-result" id="tpOutput"></div>
+  </div>
+
+  <script>
+    const assumptions = {
+      ratingRanges: [
+        { min: 0.995, max: 0.9999, value: 1000000 },
+        { min: 0.99, max: 0.9949, value: 900000 },
+        { min: 0.985, max: 0.9899, value: 800000 },
+        { min: 0.98, max: 0.9849, value: 750000 },
+        { min: 0.975, max: 0.9799, value: 700000 },
+        { min: 0.97, max: 0.9749, value: 650000 },
+        { min: 0.965, max: 0.9699, value: 600000 },
+        { min: 0.96, max: 0.9649, value: 550000 },
+        { min: 0.955, max: 0.9599, value: 500000 },
+        { min: 0.95, max: 0.9549, value: 450000 },
+        { min: 0.945, max: 0.9499, value: 400000 },
+        { min: 0.94, max: 0.9449, value: 350000 },
+        { min: 0.935, max: 0.9399, value: 300000 },
+        { min: 0.93, max: 0.9349, value: 275000 },
+        { min: 0.925, max: 0.9299, value: 250000 },
+        { min: 0.92, max: 0.9249, value: 225000 },
+        { min: 0.915, max: 0.9199, value: 200000 },
+        { min: 0.91, max: 0.9149, value: 175000 },
+        { min: 0.905, max: 0.9099, value: 150000 },
+        { min: 0.9, max: 0.9049, value: 125000 },
+        { min: 0.8995, max: 0.8999, value: 100000 },
+        { min: 0.89, max: 0.8949, value: 90000 },
+        { min: 0.885, max: 0.8899, value: 80000 },
+        { min: 0.88, max: 0.8849, value: 77500 },
+        { min: 0.875, max: 0.8799, value: 75000 },
+        { min: 0.87, max: 0.8749, value: 70000 },
+        { min: 0.865, max: 0.8699, value: 65000 },
+        { min: 0.86, max: 0.8649, value: 60000 },
+        { min: 0.855, max: 0.8599, value: 50000 },
+        { min: 0.85, max: 0.8549, value: 45000 },
+        { min: 0.845, max: 0.8499, value: 40000 },
+        { min: 0.84, max: 0.8449, value: 40000 }
+      ],
+      positionMultipliers: {
+        QB: 1.5, RB: 1.0, WR: 1.25, TE: 1.0, OT: 1.25,
+        IOL: 1.0, EDGE: 1.25, DT: 1.0, LB: 1.25, DB: 1.0, ATH: 1.25
+      },
+      overallValues: {
+        99: 6000000, 98: 5500000, 97: 5000000, 96: 4000000, 95: 3000000,
+        94: 2000000, 93: 1500000, 92: 1000000, 91: 950000, 90: 900000,
+        89: 850000, 88: 750000, 87: 700000, 86: 650000, 85: 600000,
+        84: 500000, 83: 400000, 82: 300000, 81: 200000, 80: 100000,
+        79: 90000, 78: 75000, 77: 60000, 76: 55000, 75: 50000,
+        74: 40000, 73: 30000, 72: 20000, 71: 15000, 70: 10000
+      }
+    };
+
+    function getBaseValueFromRating(rating) {
+      for (const range of assumptions.ratingRanges) {
+        if (rating >= range.min && rating <= range.max) {
+          return range.value;
+        }
+      }
+      return 0;
+    }
+
+    function getMultiplier(position) {
+      return assumptions.positionMultipliers[position.toUpperCase()] || 1;
+    }
+
+    function getBaseValueFromOverall(overall) {
+      return assumptions.overallValues[overall] || 0;
+    }
+
+    function runHighSchool() {
+      const pos = document.getElementById('hsPosition').value;
+      const rating = parseFloat(document.getElementById('hsRating').value);
+      const basePerYear = getBaseValueFromRating(rating);
+      const base = basePerYear;
+const mult = getMultiplier(pos);
+      const market = basePerYear * mult;
+document.getElementById('hsOutput').innerText =
+        "Base Value: $" + base.toLocaleString() + " | High-End Value: $" + market.toLocaleString();
+    }
+
+    function runTransferPortal() {
+      const pos = document.getElementById('tpPosition').value;
+      const overall = parseInt(document.getElementById('tpOverall').value);
+      const base = getBaseValueFromOverall(overall);
+      const mult = getMultiplier(pos);
+      const market = base * mult;
+document.getElementById('tpOutput').innerText =
+        "Market Value: $" + market.toLocaleString();
+    }
+  </script>
 </body>
 </html>
