@@ -68,17 +68,6 @@
   <img src="logo.png" alt="Expert NIL Logo" class="logo" />
 
   <div class="tool-container">
-    <h2>High School Valuation Tool</h2>
-    <label>Position:</label><br />
-    <input type="text" id="hsPosition" placeholder="e.g., QB" /><br />
-    <label>Player Rating:</label><br />
-    <input type="number" step="0.0001" id="hsRating" placeholder="e.g., 0.992" /><br />
-    <button onclick="runHighSchool()">Calculate</button>
-<img src="player_valuation_title.png" alt="Player Valuation Title" style="display: block; margin-top: 10px; width: 250px; height: auto;">
-    <div class="result valuation-result" id="hsOutput"></div>
-  </div>
-
-  <div class="tool-container">
     <h2>Transfer Portal Valuation Tool</h2>
     <label>Position:</label><br />
     <input type="text" id="tpPosition" placeholder="e.g., WR" /><br />
@@ -87,6 +76,15 @@
     <button onclick="runTransferPortal()">Calculate</button>
 <img src="player_valuation_title.png" alt="Player Valuation Title" style="display: block; margin-top: 10px; width: 250px; height: auto;">
     <div class="result valuation-result" id="tpOutput"></div>
+  <div class="tool-container">
+    <h2>High School Valuation Tool</h2>
+    <label>Position:</label><br />
+    <input type="text" id="hsPosition" placeholder="e.g., QB" /><br />
+    <label>Player Rating:</label><br />
+    <input type="number" step="0.0001" id="hsRating" placeholder="e.g., 0.992" /><br />
+    <button onclick="runHighSchool()">Calculate</button>
+<img src="player_valuation_title.png" alt="Player Valuation Title" style="display: block; margin-top: 10px; width: 250px; height: auto;">
+    <div class="result valuation-result" id="hsOutput"></div>
   </div>
 
   <script>
