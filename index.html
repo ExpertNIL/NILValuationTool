@@ -29,62 +29,29 @@
     padding: 20px;
     margin-bottom: 40px;
   }
-  h2 {
-    margin-top: 10px;
-  }
-  input {
-    padding: 8px;
-    margin: 5px 0;
-    width: 200px;
-  }
-  button {
-    padding: 8px 16px;
-    margin-top: 10px;
-  }
+  h2 { margin-top: 10px; }
+  input { padding: 8px; margin: 5px 0; width: 200px; }
+  button { padding: 8px 16px; margin-top: 10px; }
   .valuation-result {
     font-size: 24px;
     font-weight: bold;
     margin-top: 20px;
     font-family: 'TT Chocolates Valuation', Arial, sans-serif;
   }
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-  }
+  .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
   .switch input { display: none; }
   .slider.round {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #ccc;
-    border-radius: 24px;
-    transition: .4s;
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc; border-radius: 24px; transition: .4s;
   }
   .slider.round:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    border-radius: 50%;
+    position: absolute; content: ""; height: 18px; width: 18px;
+    left: 3px; bottom: 3px; background-color: white; border-radius: 50%;
     transition: .4s;
   }
-  input:checked + .slider.round {
-    background-color: #2196F3;
-  }
-  input:checked + .slider.round:before {
-    transform: translateX(26px);
-  }
-  .form-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 15px;
-  }
+  input:checked + .slider.round { background-color: #2196F3; }
+  input:checked + .slider.round:before { transform: translateX(26px); }
+  .form-row { display: flex; align-items: center; gap: 8px; margin-top: 15px; }
 </style>
 </head>
 <body>
@@ -128,51 +95,75 @@
 
 <script>
 const assumptions = {
-  ratingRanges: [
-    { min: 0.995, max: 0.9999, value: 1000000 },
-    { min: 0.99, max: 0.9949, value: 900000 },
-    { min: 0.985, max: 0.9899, value: 800000 },
-    { min: 0.98, max: 0.9849, value: 750000 },
-    { min: 0.975, max: 0.9799, value: 700000 },
-    { min: 0.97, max: 0.9749, value: 650000 },
-    { min: 0.965, max: 0.9699, value: 600000 },
-    { min: 0.96, max: 0.9649, value: 550000 },
-    { min: 0.955, max: 0.9599, value: 500000 },
-    { min: 0.95, max: 0.9549, value: 450000 },
-    { min: 0.945, max: 0.9499, value: 400000 },
-    { min: 0.94, max: 0.9449, value: 350000 },
-    { min: 0.935, max: 0.9399, value: 300000 },
-    { min: 0.93, max: 0.9349, value: 275000 },
-    { min: 0.925, max: 0.9299, value: 250000 },
-    { min: 0.92, max: 0.9249, value: 225000 },
-    { min: 0.915, max: 0.9199, value: 200000 },
-    { min: 0.91, max: 0.9149, value: 175000 },
-    { min: 0.905, max: 0.9099, value: 150000 },
-    { min: 0.9, max: 0.9049, value: 125000 },
-    { min: 0.8995, max: 0.8999, value: 100000 },
-    { min: 0.89, max: 0.8949, value: 90000 },
-    { min: 0.885, max: 0.8899, value: 80000 },
-    { min: 0.88, max: 0.8849, value: 77500 },
-    { min: 0.875, max: 0.8799, value: 75000 },
-    { min: 0.87, max: 0.8749, value: 70000 }
+  hsRatingRanges: [
+    { min: 0.9999, max: 0.9950, value: 1000000 },
+    { min: 0.9949, max: 0.9900, value: 900000 },
+    { min: 0.9899, max: 0.9850, value: 800000 },
+    { min: 0.9849, max: 0.9800, value: 750000 },
+    { min: 0.9799, max: 0.9750, value: 700000 },
+    { min: 0.9749, max: 0.9700, value: 650000 },
+    { min: 0.9699, max: 0.9650, value: 600000 },
+    { min: 0.9649, max: 0.9600, value: 525000 },
+    { min: 0.9599, max: 0.9550, value: 450000 },
+    { min: 0.9549, max: 0.9500, value: 350000 },
+    { min: 0.9499, max: 0.9450, value: 250000 },
+    { min: 0.9449, max: 0.9400, value: 200000 },
+    { min: 0.9399, max: 0.9350, value: 175000 },
+    { min: 0.9349, max: 0.9300, value: 150000 },
+    { min: 0.9299, max: 0.9250, value: 145000 },
+    { min: 0.9249, max: 0.9200, value: 140000 },
+    { min: 0.9199, max: 0.9150, value: 120000 },
+    { min: 0.9149, max: 0.9100, value: 100000 },
+    { min: 0.9099, max: 0.9050, value: 85000 },
+    { min: 0.9049, max: 0.9000, value: 75000 },
+    { min: 0.8999, max: 0.8950, value: 65000 },
+    { min: 0.8949, max: 0.8900, value: 55000 },
+    { min: 0.8899, max: 0.8850, value: 40000 },
+    { min: 0.8849, max: 0.8800, value: 30000 },
+    { min: 0.8799, max: 0.8750, value: 25000 },
+    { min: 0.8749, max: 0.8700, value: 20000 }
+  ],
+  portalRatingRanges: [
+    { min: 99, max: 99, value: 6000000 },
+    { min: 98, max: 98, value: 5500000 },
+    { min: 97, max: 97, value: 5000000 },
+    { min: 96, max: 96, value: 4000000 },
+    { min: 95, max: 95, value: 3000000 },
+    { min: 94, max: 94, value: 2000000 },
+    { min: 93, max: 93, value: 1500000 },
+    { min: 92, max: 92, value: 1000000 },
+    { min: 91, max: 91, value: 950000 },
+    { min: 90, max: 90, value: 900000 },
+    { min: 89, max: 89, value: 850000 },
+    { min: 88, max: 88, value: 750000 },
+    { min: 87, max: 87, value: 700000 },
+    { min: 86, max: 86, value: 600000 },
+    { min: 85, max: 85, value: 500000 },
+    { min: 84, max: 84, value: 400000 },
+    { min: 83, max: 83, value: 350000 },
+    { min: 82, max: 82, value: 275000 },
+    { min: 81, max: 81, value: 200000 },
+    { min: 80, max: 80, value: 125000 },
+    { min: 79, max: 79, value: 90000 },
+    { min: 78, max: 78, value: 75000 },
+    { min: 77, max: 77, value: 60000 },
+    { min: 76, max: 76, value: 55000 },
+    { min: 75, max: 75, value: 50000 },
+    { min: 74, max: 74, value: 40000 },
+    { min: 73, max: 73, value: 30000 },
+    { min: 72, max: 72, value: 20000 },
+    { min: 71, max: 71, value: 15000 },
+    { min: 70, max: 70, value: 10000 }
   ],
   positionMultipliers: {
     QB: 1.5, RB: 1.0, WR: 1.25, TE: 1.0, OT: 1.25,
-    IOL: 1.0, EDGE: 1.25, DT: 1.0, LB: 1.25, DB: 1.0, ATH: 1.25
-  },
-  overallValues: {
-    99: 6000000, 98: 5500000, 97: 5000000, 96: 4000000, 95: 3000000,
-    94: 2000000, 93: 1500000, 92: 1000000, 91: 950000, 90: 900000,
-    89: 850000, 88: 750000, 87: 700000, 86: 650000, 85: 600000,
-    84: 500000, 83: 400000, 82: 300000, 81: 200000, 80: 100000,
-    79: 90000, 78: 75000, 77: 60000, 76: 55000, 75: 50000,
-    74: 40000, 73: 30000, 72: 20000, 71: 15000, 70: 10000
+    IOL: 1.0, EDGE: 1.25, DT: 1.0, LB: 1.25, DB: 1.0, ATH: 1.25, S: 1.0
   }
 };
 
-function getBaseValueFromRating(rating) {
-  for (const range of assumptions.ratingRanges) {
-    if (rating >= range.min && rating <= range.max) {
+function getValueFromRanges(rating, ranges) {
+  for (const range of ranges) {
+    if (rating <= range.min && rating >= range.max) {
       return range.value;
     }
   }
@@ -183,14 +174,10 @@ function getMultiplier(position) {
   return assumptions.positionMultipliers[position.toUpperCase()] || 1;
 }
 
-function getBaseValueFromOverall(overall) {
-  return assumptions.overallValues[overall] || 0;
-}
-
 function runHighSchool() {
   const pos = document.getElementById('hsPosition').value;
   const rating = parseFloat(document.getElementById('hsRating').value);
-  const basePerYear = getBaseValueFromRating(rating);
+  const basePerYear = getValueFromRanges(rating, assumptions.hsRatingRanges);
   const mult = getMultiplier(pos);
   let market = basePerYear * mult;
 
@@ -202,8 +189,8 @@ function runHighSchool() {
 
 function runTransferPortal() {
   const pos = document.getElementById('tpPosition').value;
-  const overall = parseInt(document.getElementById('tpOverall').value);
-  const base = getBaseValueFromOverall(overall);
+  const overall = parseFloat(document.getElementById('tpOverall').value);
+  const base = getValueFromRanges(overall, assumptions.portalRatingRanges);
   const mult = getMultiplier(pos);
   let market = base * mult;
 
