@@ -63,6 +63,8 @@
 <input id="tpPosition" placeholder="e.g., WR" type="text"/><br/>
 <label>Player Grade:</label><br/>
 <input id="tpOverall" placeholder="e.g., 95" type="number"/><br/>
+<label>Followers:</label><br/>
+<input id="tpFollowers" placeholder="e.g., 25000" type="number"/><br/>
 <button onclick="runTransferPortal()">Calculate</button>
 <img src="player_valuation_title.png" style="display:block;margin-top:10px;width:250px;height:auto;"/>
 <div id="tpOutput" class="valuation-result"></div>
@@ -81,6 +83,8 @@
 <input id="hsPosition" placeholder="e.g., QB" type="text"/><br/>
 <label>Player Rating:</label><br/>
 <input id="hsRating" placeholder="e.g., 0.992" type="number" step="0.0001"/><br/>
+<label>Followers:</label><br/>
+<input id="hsFollowers" placeholder="e.g., 25000" type="number"/><br/>
 <button onclick="runHighSchool()">Calculate</button>
 <img src="player_valuation_title.png" style="display:block;margin-top:10px;width:250px;height:auto;"/>
 <div id="hsOutput" class="valuation-result"></div>
@@ -96,32 +100,32 @@
 <script>
 const assumptions = {
   hsRatingRanges: [
-    { min: 0.9999, max: 0.9950, value: 1000000 },
-    { min: 0.9949, max: 0.9900, value: 900000 },
-    { min: 0.9899, max: 0.9850, value: 800000 },
-    { min: 0.9849, max: 0.9800, value: 750000 },
-    { min: 0.9799, max: 0.9750, value: 700000 },
-    { min: 0.9749, max: 0.9700, value: 650000 },
-    { min: 0.9699, max: 0.9650, value: 600000 },
-    { min: 0.9649, max: 0.9600, value: 525000 },
-    { min: 0.9599, max: 0.9550, value: 450000 },
-    { min: 0.9549, max: 0.9500, value: 350000 },
-    { min: 0.9499, max: 0.9450, value: 250000 },
-    { min: 0.9449, max: 0.9400, value: 200000 },
-    { min: 0.9399, max: 0.9350, value: 175000 },
-    { min: 0.9349, max: 0.9300, value: 150000 },
-    { min: 0.9299, max: 0.9250, value: 145000 },
-    { min: 0.9249, max: 0.9200, value: 140000 },
-    { min: 0.9199, max: 0.9150, value: 120000 },
-    { min: 0.9149, max: 0.9100, value: 100000 },
-    { min: 0.9099, max: 0.9050, value: 85000 },
-    { min: 0.9049, max: 0.9000, value: 75000 },
-    { min: 0.8999, max: 0.8950, value: 65000 },
-    { min: 0.8949, max: 0.8900, value: 55000 },
-    { min: 0.8899, max: 0.8850, value: 40000 },
-    { min: 0.8849, max: 0.8800, value: 30000 },
-    { min: 0.8799, max: 0.8750, value: 25000 },
-    { min: 0.8749, max: 0.8700, value: 20000 }
+    { min: 0.9999, max: 0.995, value: 1000000 },
+    { min: 0.9949, max: 0.990, value: 900000 },
+    { min: 0.9899, max: 0.985, value: 800000 },
+    { min: 0.9849, max: 0.980, value: 750000 },
+    { min: 0.9799, max: 0.975, value: 700000 },
+    { min: 0.9749, max: 0.970, value: 650000 },
+    { min: 0.9699, max: 0.965, value: 600000 },
+    { min: 0.9649, max: 0.960, value: 525000 },
+    { min: 0.9599, max: 0.955, value: 450000 },
+    { min: 0.9549, max: 0.950, value: 350000 },
+    { min: 0.9499, max: 0.945, value: 250000 },
+    { min: 0.9449, max: 0.940, value: 200000 },
+    { min: 0.9399, max: 0.935, value: 175000 },
+    { min: 0.9349, max: 0.930, value: 150000 },
+    { min: 0.9299, max: 0.925, value: 145000 },
+    { min: 0.9249, max: 0.920, value: 140000 },
+    { min: 0.9199, max: 0.915, value: 120000 },
+    { min: 0.9149, max: 0.910, value: 100000 },
+    { min: 0.9099, max: 0.905, value: 85000 },
+    { min: 0.9049, max: 0.900, value: 75000 },
+    { min: 0.8999, max: 0.895, value: 65000 },
+    { min: 0.8949, max: 0.890, value: 55000 },
+    { min: 0.8899, max: 0.885, value: 40000 },
+    { min: 0.8849, max: 0.880, value: 30000 },
+    { min: 0.8799, max: 0.875, value: 25000 },
+    { min: 0.8749, max: 0.870, value: 20000 }
   ],
   portalRatingRanges: [
     { min: 99, max: 99, value: 6000000 },
@@ -161,6 +165,22 @@ const assumptions = {
   }
 };
 
+const followerBonuses = [
+  { min: 2000000, max: 20000000, value: 400000 },
+  { min: 1500000, max: 1999999, value: 300000 },
+  { min: 1000000, max: 1499999, value: 250000 },
+  { min: 750000, max: 999999, value: 175000 },
+  { min: 500000, max: 749999, value: 125000 },
+  { min: 300000, max: 499999, value: 60000 },
+  { min: 200000, max: 299999, value: 40000 },
+  { min: 150000, max: 199999, value: 30000 },
+  { min: 100000, max: 149999, value: 20000 },
+  { min: 75000, max: 99999, value: 12000 },
+  { min: 50000, max: 74999, value: 7000 },
+  { min: 25000, max: 49999, value: 4000 },
+  { min: 0, max: 24999, value: 0 }
+];
+
 function getValueFromRanges(rating, ranges) {
   for (const range of ranges) {
     if (rating <= range.min && rating >= range.max) {
@@ -170,34 +190,45 @@ function getValueFromRanges(rating, ranges) {
   return 0;
 }
 
-function getMultiplier(position) {
-  return assumptions.positionMultipliers[position.toUpperCase()] || 1;
+function getFollowersBonus(followers) {
+  for (const range of followerBonuses) {
+    if (followers >= range.min && followers <= range.max) {
+      return range.value;
+    }
+  }
+  return 0;
 }
 
 function runHighSchool() {
   const pos = document.getElementById('hsPosition').value;
   const rating = parseFloat(document.getElementById('hsRating').value);
-  const basePerYear = getValueFromRanges(rating, assumptions.hsRatingRanges);
-  const mult = getMultiplier(pos);
-  let market = basePerYear * mult;
+  const followers = parseInt(document.getElementById('hsFollowers').value) || 0;
+  const base = getValueFromRanges(rating, assumptions.hsRatingRanges);
+  const mult = assumptions.positionMultipliers[pos.toUpperCase()] || 1;
+  let market = base * mult;
 
   if (!document.getElementById('hsCapToggle').checked) {
     market = market / 1.75;
   }
-  document.getElementById('hsOutput').innerText = "$" + Math.round(market).toLocaleString();
+
+  const total = market + getFollowersBonus(followers);
+  document.getElementById('hsOutput').innerText = "$" + Math.round(total).toLocaleString();
 }
 
 function runTransferPortal() {
   const pos = document.getElementById('tpPosition').value;
   const overall = parseFloat(document.getElementById('tpOverall').value);
+  const followers = parseInt(document.getElementById('tpFollowers').value) || 0;
   const base = getValueFromRanges(overall, assumptions.portalRatingRanges);
-  const mult = getMultiplier(pos);
+  const mult = assumptions.positionMultipliers[pos.toUpperCase()] || 1;
   let market = base * mult;
 
   if (!document.getElementById('tpCapToggle').checked) {
     market = market / 1.75;
   }
-  document.getElementById('tpOutput').innerText = "$" + Math.round(market).toLocaleString();
+
+  const total = market + getFollowersBonus(followers);
+  document.getElementById('tpOutput').innerText = "$" + Math.round(total).toLocaleString();
 }
 
 document.getElementById('tpCapToggle').addEventListener('change', () => {
@@ -208,5 +239,12 @@ document.getElementById('hsCapToggle').addEventListener('change', () => {
   document.getElementById('hsCapLabel').innerText = document.getElementById('hsCapToggle').checked ? 'Large Cap' : 'Small Cap';
 });
 </script>
+
+<div style="font-size: 12px; color: white; margin-top: 50px;">
+  <p>* These figures are constantly updated and should be considered estimates, not guarantees, as NIL deals vary significantly.</p>
+  <p>* Note: NCAA teams now operate under a $20.5 million annual salary cap; however, this cap does not limit additional third-party deals athletes may secure.</p>
+  <p>* Valuation models include consideration of third-party brand deals that programs may help facilitate.</p>
+</div>
 </body>
+
 </html>
