@@ -55,6 +55,29 @@
 </style>
 </head>
 <body>
+
+<style>
+  body {
+    overflow: hidden;
+  }
+  #preloadOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background-color: black;
+    z-index: 10000;
+  }
+</style>
+
+<div id="preloadOverlay"></div>
+
+<script>
+  window.addEventListener('load', function () {
+    document.getElementById('preloadOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+  });
+</script>
+
 <img src="logo.png" alt="Expert NIL Logo" class="logo"/>
 
 <div class="tool-container">
