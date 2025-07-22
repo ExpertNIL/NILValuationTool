@@ -31,9 +31,9 @@
   }
   h2 { margin-top: 10px; }
   input { padding: 8px; margin: 5px 0; width: 200px; }
-  button { padding: 8px 16px; margin-top: 10px; }
+  button { padding: 14px 28px; margin-top: 10px; }
   .valuation-result {
-    font-size: 24px;
+    font-size: 32px;
     font-weight: bold;
     margin-top: 20px;
     font-family: 'TT Chocolates Valuation', Arial, sans-serif;
@@ -245,6 +245,58 @@ document.getElementById('hsCapToggle').addEventListener('change', () => {
   <p>* Note: NCAA teams now operate under a $20.5 million annual salary cap; however, this cap does not limit additional third-party deals athletes may secure.</p>
   <p>* Valuation models include consideration of third-party brand deals that programs may help facilitate.</p>
 </div>
+
+<!-- Popup Backdrop -->
+<div id="popupBackdrop" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+">
+  <!-- Popup Content -->
+  <div style="position: relative; width: 90%; max-width: 1200px;">
+    <img src='Tool Message PNG.png' alt='Instructions' style='width: 100%; border-radius: 8px;' />
+    <!-- Close Button -->
+    <button onclick="closePopup()" style="
+      position: absolute;
+      top: 10px;
+      right: 30px;
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 32px;
+      cursor: pointer;
+      z-index: 10000;
+    ">×</button>
+    <!-- Continue Button -->
+    <button onclick="closePopup()" style="
+      position: absolute;
+      bottom: 45px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #ffffff;
+      color: black;
+      border: none;
+      padding: 14px 28px;
+      font-size: 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 10000;
+    ">Continue</button>
+  </div>
+</div>
+
+<script>
+function closePopup() {
+  document.getElementById('popupBackdrop').style.display = 'none';
+}
+</script>
+
 </body>
 
 </html>
