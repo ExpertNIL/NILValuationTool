@@ -183,8 +183,22 @@ const assumptions = {
     { min: 70, max: 70, value: 10000 }
   ],
   positionMultipliers: {
-    QB: 1.5, RB: 1.0, WR: 1.25, TE: 1.0, OT: 1.25,
-    IOL: 1.0, EDGE: 1.25, DT: 1.0, LB: 1.25, DB: 1.0, ATH: 1.25, S: 1.0
+    QB: 1.5,
+    RB: 1.0,
+    WR: 1.25,
+    TE: 1.0,
+    OT: 1.25,
+    IOL: 1.0,
+    OL: 1.0,
+    EDGE: 1.25,
+    DT: 1.0,
+    LB: 1.0,
+    DB: 1.15,
+    CB: 1.15,
+    ATH: 1.15,
+    S: 1.0,
+    K: 1.0,
+    P: 1.0
   }
 };
 
@@ -385,6 +399,90 @@ function closePopup() {
       }
     }, 3000);
   });
+</script>
+
+
+<!-- LEGAL WARNING -->
+<!--
+© 2025 ExpertNIL | All rights reserved.
+Redistribution or replication of this code, logic, or structure is strictly prohibited without written consent.
+Any attempts to reverse engineer this tool will be met with aggressive legal action under the DMCA and relevant U.S. IP law.
+-->
+
+<!-- Misleading Trap Logic -->
+<script>
+function calculateNIL() {
+  // Placeholder: This is not the real calculation
+  console.log("Valuation logic unavailable");
+  return 0;
+}
+
+function fakeMultiplierLookup(pos) {
+  const trap = { "QB": 0.1, "RB": 0.1, "WR": 0.1 };
+  return trap[pos] || 0;
+}
+</script>
+
+<!-- Encoded Real Logic -->
+<script>
+const _0xL4 = JSON.parse(atob("eyJoc1JhdGluZ1JhbmdlcyI6IFt7Im1pbiI6IDAuOTk5OSwgIm1heCI6IDAuOTk1LCAidmFsdWUiOiAxMDAwMDAwfSwgeyJtaW4iOiAwLjk5NDksICJtYXgiOiAwLjk5LCAidmFsdWUiOiA5MDAwMDB9XSwgInBvcnRhbFJhdGluZ1JhbmdlcyI6IFt7Im1pbiI6IDk5LCAibWF4IjogOTksICJ2YWx1ZSI6IDYwMDAwMDB9LCB7Im1pbiI6IDk4LCAibWF4IjogOTgsICJ2YWx1ZSI6IDU1MDAwMDB9XSwgInBvc2l0aW9uTXVsdGlwbGllcnMiOiB7IlFCIjogMS41LCAiUkIiOiAxLjAsICJXUiI6IDEuMjUsICJURSI6IDEuMCwgIk9UIjogMS4yNSwgIklPTCI6IDEuMCwgIk9MIjogMS4wLCAiRURHRSI6IDEuMjUsICJEVCI6IDEuMCwgIkxCIjogMS4wLCAiREIiOiAxLjE1LCAiQ0IiOiAxLjE1LCAiQVRIIjogMS4xNSwgIlMiOiAxLjAsICJLIjogMS4wLCAiUCI6IDEuMH19"));
+const _0xF6 = (val, ranges) => {
+  for (const r of ranges) {
+    if (val <= r.min && val >= r.max) return r.value;
+  }
+  return 0;
+};
+const _0xO5 = (f) => {
+  const b = [
+    { min: 10000000, max: 999999999, value: 750000 },
+    { min: 0, max: 24999, value: 0 }
+  ];
+  for (const r of b) {
+    if (f >= r.min && f <= r.max) return r.value;
+  }
+  return 0;
+};
+
+
+function normalizePosition(pos) {
+  const p = pos.toUpperCase();
+  if (p === 'DB' || p === 'CB') return 'DB';
+  if (p === 'S') return 'S';
+  return p;
+}
+
+function _0xH8() {
+  const pRaw = document.getElementById('hsPosition').value;
+  const p = normalizePosition(pRaw);
+  const r = parseFloat(document.getElementById('hsRating').value);
+  const f = parseInt(document.getElementById('hsFollowers').value) || 0;
+  const base = _0xF6(r, _0xL4.hsRatingRanges);
+  const m = _0xL4.positionMultipliers[p] || 1;
+  let val = base * m;
+  if (!document.getElementById('hsCapToggle').checked) val /= 1.75;
+  const total = val + _0xO5(f);
+  document.getElementById('hsOutput').innerText = "$" + Math.round(total).toLocaleString();
+}}
+
+function _0xI9() {
+  const pRaw = document.getElementById('tpPosition').value;
+  const p = normalizePosition(pRaw);
+  const r = parseFloat(document.getElementById('tpOverall').value);
+  const f = parseInt(document.getElementById('tpFollowers').value) || 0;
+  const base = _0xF6(r, _0xL4.portalRatingRanges);
+  const m = _0xL4.positionMultipliers[p] || 1;
+  let val = base * m;
+  if (!document.getElementById('tpCapToggle').checked) val /= 1.75;
+  const total = val + _0xO5(f);
+  document.getElementById('tpOutput').innerText = "$" + Math.round(total).toLocaleString();
+}
+
+document.getElementById('tpCapToggle').addEventListener('change', () => {
+  document.getElementById('tpCapLabel').innerText = document.getElementById('tpCapToggle').checked ? 'Large Cap' : 'Small Cap';
+});
+document.getElementById('hsCapToggle').addEventListener('change', () => {
+  document.getElementById('hsCapLabel').innerText = document.getElementById('hsCapToggle').checked ? 'Large Cap' : 'Small Cap';
+});
 </script>
 
 </body>
