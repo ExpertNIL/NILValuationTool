@@ -93,6 +93,26 @@
   .button-row button{margin-top:0; line-height:1;}
   .fine{font-size:12px; color:var(--muted); margin-top:22px}
   .stack{display:flex; flex-direction:column; gap:10px}
+
+@media (max-width: 640px){
+  /* Make popup a bit narrower on mobile */
+  #popupInner{ width: min(94vw, 560px); }
+  /* Place Continue button below the image and shrink size */
+  #popupContinue{
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    bottom: auto !important;
+    display: block;
+    margin: 16px auto 0 auto;
+    padding: 10px 16px;
+    width: 160px;
+    height: auto;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+}
+
 </style>
 </head>
 <body>
