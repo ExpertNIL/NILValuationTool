@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ExpertNIL — Social-Weighted Valuation</title>
+<style>
+  @font-face {
+    font-family: 'TT Chocolates Valuation';
+    src: url('TT_Chocolates_Trial_Bold.otf') format('opentype');
+    font-display: swap;
+  }
+  :root{
+    --bg:#1a1a1a;
+    --card:#111;
+    --ink:#eaeaea;
+    --muted:#a7a7a7;
+    --accent:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    line-height:1.45;
+    padding:24px;
+  }
+  .logo{max-width:260px; margin:6px 0 18px 4px;}
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:24px;
+    align-items:start;
+  }
+  .card{
+    background:var(--card);
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 10px 40px rgba(0,0,0,.35);
+    border:1px solid #2a2a2a;
+  }
+  h1{
+    font-family:'TT Chocolates Valuation', system-ui, sans-serif;
+    letter-spacing:.3px;
+    margin:6px 0 14px;
+    font-size:28px;
+  }
+  h2{margin:6px 0 8px; font-size:18px; color:var(--ink)}
+  label{display:block; font-size:14px; color:var(--muted); margin-top:10px}
+  input,select{
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    background:#171717;
+    color:var(--ink);
+    border:1px solid #2e2e2e;
+    outline:none;
+  }
+  .row{display:flex; gap:10px}
+  button{
+    margin-top:14px;
+    padding:14px 18px;
+    border-radius:14px;
+    border:1px solid #2d2d2d;
+    background:var(--accent);
+    color:#000;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .result{
+    margin-top:16px;
+    font-size:34px;
+    font-family:'TT Chocolates Valuation', system-ui, sans-serif;
+  }
+  .sub{
+    margin-top:6px; color:var(--muted); font-size:12px
+  }
+  .switch{display:flex; align-items:center; gap:10px; margin-top:10px}
+  .toggle{
+    appearance:none;
+    width:48px; height:28px; border-radius:24px; background:#333; position:relative; outline:none; cursor:pointer;
+    border:1px solid #454545;
+  }
+  .toggle::after{
+    content:''; width:22px; height:22px; border-radius:50%; background:#fff; position:absolute; top:2.5px; left:3px; transition:.25s;
+  }
+  .toggle:checked{background:#eaeaea}
+  .toggle:checked::after{transform:translateX(20px)}
+  .title-img{width:240px; opacity:.9; display:block; margin:0}
+  .button-row{display:flex; align-items:center; gap:14px; margin-top:14px;}
+  .button-row button{margin-top:0; line-height:1;}
+  .fine{font-size:12px; color:var(--muted); margin-top:22px}
+  .stack{display:flex; flex-direction:column; gap:10px}
+</style>
+</head>
+<body>
+  <img src="logo.png" alt="Expert NIL Logo" class="logo"/>
+
+  <div class="grid">
+    <!-- TRANSFER PORTAL -->
+    <section class="card">
+      <h1>Transfer Portal Valuation</h1>
+      <div class="row">
+        <div class="stack" style="flex:1">
+          <label>Position</label>
+          <input id="tpPosition" placeholder="e.g., WR"/>
+        </div>
+        <div class="stack" style="flex:1">
+          <label>Player Grade (70–99)</label>
+          <input id="tpOverall" type="number" step="1" placeholder="e.g., 92"/>
+        </div>
+      </div>
+      <label>Total Social Followers (IG + TikTok + X + YT)</label>
+      <input id="tpFollowers" type="number" placeholder="e.g., 250000"/>
+
+      <div class="switch">
+        <input id="tpCapToggle" class="toggle" type="checkbox"/>
+        <span id="tpCapLabel">Small Cap</span>
+      </div>
+
+      <div class="button-row">
+        <button onclick="runTransferPortal()">Calculate</button>
+        <img src="player_valuation_title.png" class="title-img" alt="title"/>
+      </div>
+      <div id="tpOutput" class="result"></div>
+      <div id="tpBreakdown" class="sub"></div>
+    </section>
+
+    <!-- HIGH SCHOOL -->
+    <section class="card">
+      <h1>High School Valuation</h1>
+      <div class="row">
+        <div class="stack" style="flex:1">
+          <label>Position</label>
+          <input id="hsPosition" placeholder="e.g., QB"/>
+        </div>
+        <div class="stack" style="flex:1">
+          <label>247-style Rating (0.870–0.9999)</label>
+          <input id="hsRating" type="number" step="0.0001" placeholder="e.g., 0.9600"/>
+        </div>
+      </div>
+      <label>Total Social Followers (IG + TikTok + X + YT)</label>
+      <input id="hsFollowers" type="number" placeholder="e.g., 50000"/>
+
+      <div class="switch">
+        <input id="hsCapToggle" class="toggle" type="checkbox"/>
+        <span id="hsCapLabel">Small Cap</span>
+      </div>
+
+      <div class="button-row">
+        <button onclick="runHighSchool()">Calculate</button>
+        <img src="player_valuation_title.png" class="title-img" alt="title"/>
+      </div>
+      <div id="hsOutput" class="result"></div>
+      <div id="hsBreakdown" class="sub"></div>
+    </section>
+  </div>
+
+  <p class="fine">
+    * Model shifts more weight to audience size using a diminishing-returns power function (strong at 10–250k; tapering above). 
+    Player-grade anchors are intentionally reduced vs. prior version. Program “Large Cap” roughly reflects deeper collectives vs. “Small Cap”.<br><br>
+    * All figures are estimates and include potential third-party brand deals. NIL values vary significantly by program. NCAA teams now operate under a $20.5M annual salary cap, which does not limit third-party deals.
+  </p>
+
+<script>
+// Position multipliers
+const POS_MULT = { QB:1.5, RB:1.0, WR:1.25, TE:1.0, OT:1.25, IOL:1.0, EDGE:1.25, DT:1.0, LB:1.25, DB:1.0, ATH:1.25, S:1.0 };
+const PORTAL_BASE = [{g:99,v:2500000},{g:98,v:2200000},{g:97,v:2000000},{g:96,v:1700000},{g:95,v:1400000},{g:94,v:1100000},{g:93,v:900000},{g:92,v:750000},{g:91,v:650000},{g:90,v:550000},{g:89,v:450000},{g:88,v:375000},{g:87,v:325000},{g:86,v:275000},{g:85,v:225000},{g:84,v:185000},{g:83,v:150000},{g:82,v:120000},{g:81,v:100000},{g:80,v:85000},{g:79,v:70000},{g:78,v:60000},{g:77,v:50000},{g:76,v:45000},{g:75,v:40000},{g:74,v:32000},{g:73,v:26000},{g:72,v:20000},{g:71,v:16000},{g:70,v:12000}];
+const HS_BASE = [{min:0.9999,max:0.9950,v:450000},{min:0.9949,max:0.9900,v:375000},{min:0.9899,max:0.9850,v:325000},{min:0.9849,max:0.9800,v:275000},{min:0.9799,max:0.9750,v:230000},{min:0.9749,max:0.9700,v:200000},{min:0.9699,max:0.9650,v:175000},{min:0.9649,max:0.9600,v:150000},{min:0.9599,max:0.9550,v:125000},{min:0.9549,max:0.9500,v:100000},{min:0.9499,max:0.9450,v:85000},{min:0.9449,max:0.9400,v:70000},{min:0.9399,max:0.9350,v:60000},{min:0.9349,max:0.9300,v:52000},{min:0.9299,max:0.9250,v:45000},{min:0.9249,max:0.9200,v:38000},{min:0.9199,max:0.9150,v:32000},{min:0.9149,max:0.9100,v:28000},{min:0.9099,max:0.9050,v:24000},{min:0.9049,max:0.9000,v:20000},{min:0.8999,max:0.8950,v:17000},{min:0.8949,max:0.8900,v:14000},{min:0.8899,max:0.8850,v:12000},{min:0.8849,max:0.8800,v:10000},{min:0.8799,max:0.8750,v:9000},{min:0.8749,max:0.8700,v:8000}];
+const PORTAL_FOLLOWER = {K:8000, ALPHA:0.60, MAX:1000000};
+const HS_FOLLOWER     = {K:5000, ALPHA:0.60, MAX:400000};
+const SMALL_CAP_DIVISOR = 1.65;
+
+const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+function baseFromPortalGrade(g){g=Math.round(g);const row=PORTAL_BASE.find(r=>r.g===g);return row?row.v:0}
+function baseFromHSRating(r){for(const row of HS_BASE){if(r<=row.min&&r>=row.max)return row.v;}return 0}
+function followerValue(count,spec){if(!count||count<=0)return 0;const val=spec.K*Math.pow(count/1000,spec.ALPHA);return clamp(val,0,spec.MAX)}
+function posMult(p){return POS_MULT[(p||'').trim().toUpperCase()]||1}
+function formatMoney(n){return "$"+Math.round(n).toLocaleString()}
+
+const tpCapToggle=document.getElementById('tpCapToggle');
+const hsCapToggle=document.getElementById('hsCapToggle');
+const tpCapLabel=document.getElementById('tpCapLabel');
+const hsCapLabel=document.getElementById('hsCapLabel');
+tpCapToggle.addEventListener('change',()=>tpCapLabel.textContent=tpCapToggle.checked?'Large Cap':'Small Cap');
+hsCapToggle.addEventListener('change',()=>hsCapLabel.textContent=hsCapToggle.checked?'Large Cap':'Small Cap');
+
+function runTransferPortal(){
+  const pos=document.getElementById('tpPosition').value;
+  const grade=parseFloat(document.getElementById('tpOverall').value);
+  const followers=parseInt(document.getElementById('tpFollowers').value)||0;
+  const base=baseFromPortalGrade(grade);
+  let market=base*posMult(pos);
+  if(!tpCapToggle.checked)market/=SMALL_CAP_DIVISOR;
+  const audience=followerValue(followers,PORTAL_FOLLOWER);
+  const total=market+audience;
+  document.getElementById('tpOutput').textContent=formatMoney(total);
+  document.getElementById('tpBreakdown').textContent=`Breakdown → Grade×Pos: ${formatMoney(market)}  •  Audience: ${formatMoney(audience)}  •  Followers: ${followers.toLocaleString()}`;
+}
+function runHighSchool(){
+  const pos=document.getElementById('hsPosition').value;
+  const rating=parseFloat(document.getElementById('hsRating').value);
+  const followers=parseInt(document.getElementById('hsFollowers').value)||0;
+  const base=baseFromHSRating(rating);
+  let market=base*posMult(pos);
+  if(!hsCapToggle.checked)market/=SMALL_CAP_DIVISOR;
+  const audience=followerValue(followers,HS_FOLLOWER);
+  const total=market+audience;
+  document.getElementById('hsOutput').textContent=formatMoney(total);
+  document.getElementById('hsBreakdown').textContent=`Breakdown → Rating×Pos: ${formatMoney(market)}  •  Audience: ${formatMoney(audience)}  •  Followers: ${followers.toLocaleString()}`;
+}
+</script>
+
+</body>
+</html>
