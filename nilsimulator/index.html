@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>NIL Program Simulator</title>
+<style>
+  :root{ --bg:#1a1a1a; --card:#111; --ink:#eaeaea; --muted:#a7a7a7; --accent:#ffffff; --line:#2a2a2a; --brand:#8affc1; --warn:#ffd166; --danger:#ff5c5c; --ok:#8aff8a; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";line-height:1.45;padding:22px}
+  .logo{max-width:240px;opacity:.95;margin:6px 0 18px 4px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px;align-items:start}
+  .card{background:var(--card);border-radius:18px;padding:18px;border:1px solid var(--line);box-shadow:0 10px 40px rgba(0,0,0,.35)}
+  h1{margin:6px 0 12px;font-size:26px;letter-spacing:.2px}
+  h2{margin:2px 0 10px;font-size:18px;color:var(--ink)}
+  h3{margin:10px 0 6px;font-size:14px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.12em}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 6px}
+  input,select{width:100%;padding:12px 14px;border-radius:12px;background:#171717;color:var(--ink);border:1px solid #2e2e2e;outline:none}
+  input[type="number"]{appearance:textfield}
+  .row{display:flex;gap:10px}
+  .grow{flex:1}
+  .button{padding:12px 14px;border-radius:14px;border:1px solid #2d2d2d;background:var(--accent);color:#000;font-weight:700;cursor:pointer}
+  .button.ghost{background:#171717;color:var(--ink)}
+  .button.warn{background:var(--warn);color:#000}
+  .button.danger{background:var(--danger);color:#000}
+  .button.ok{background:var(--ok);color:#000}
+  .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#1d1d1d;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .stack{display:flex;flex-direction:column;gap:10px}
+  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:10px}
+  .item{padding:10px;border:1px solid var(--line);border-radius:12px;background:#121212}
+  .item.sel{outline:2px solid var(--brand)}
+  .tiny{font-size:12px;color:var(--muted)}
+  .mono{font-variant-numeric:tabular-nums}
+  .divider{height:1px;background:var(--line);margin:12px 0}
+  .right{display:flex;justify-content:flex-end;gap:10px}
+  .bar{height:10px;background:#222;border:1px solid #333;border-radius:999px;overflow:hidden}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,#c6ffdd,#fbd786,#f7797d)}
+  .tag{font-size:11px;color:#111;background:var(--ink);border-radius:999px;padding:3px 8px;margin-left:6px}
+  .kpi{font-size:20px;font-weight:800}
+  .muted{color:var(--muted)}
+  .nowrap{white-space:nowrap}
+  .sticky{position:sticky;top:10px}
+  #panelPortal{margin-top:20px}
+  select option,select optgroup{background:#fff;color:#000}
+  .big-season{padding:24px}
+  .big-season .kpi{font-size:28px}
+  .iconbtn{border:none;background:#222;color:#eee;border:1px solid #333;padding:6px 10px;border-radius:10px;cursor:pointer}
+  .iconbtn:hover{background:#2a2a2a}
+  /* feedback colors */
+  .oktext{color:var(--ok);font-weight:600}
+  .rejtext{color:var(--danger);font-weight:600}
+  .flags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .ftag{background:#0f1a12;color:#b7ffcb;border:1px solid #234; padding:6px 10px; border-radius:999px; font-size:12px}
+  .ftag.win{background:#101a10;color:#caffca;border-color:#2a4}
+
+  /* === Draggable Portal Panel === */
+  #panelPortal.draggable {
+    position: fixed !important;
+    top: 84px; 
+    left: 64px;
+    width: min(640px, 92vw);
+    max-height: 82vh;
+    overflow: auto;
+    z-index: 9999;
+    box-shadow: 0 16px 60px rgba(0,0,0,.6);
+    cursor: grab;
+  }
+  #panelPortal.dragging { cursor: grabbing; }
+  #panelPortal .drag-handle {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+  }
+
+</style>
+</head>
+<body>
+  <img class="logo" src="logo.png" alt="ExpertNIL"/>
+
+  <div class="grid">
+    <section class="card sticky">
+      <h1>NIL Program Simulator</h1>
+      <label>Select Program</label>
+      <select id="programSelect"></select>
+
+      <div id="programOverview" class="stack" style="margin-top:12px">
+        <div><span class="pill">Last year’s record</span><div class="kpi mono" id="progRecord">--</div></div>
+        <div><span class="pill">Current head coach</span><div class="kpi" id="progCoach">--</div></div>
+        <div class="row" style="gap:12px">
+          <div class="grow"><span class="pill">Total NIL (est.)</span><div class="kpi mono" id="progTotal">--</div></div>
+          <div class="grow"><span class="pill">Portal budget (60%)</span><div class="kpi mono" id="progPortal">--</div></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="stack">
+        <button class="button" id="btnGenRosters">Generate Rosters</button>
+        <button class="button ghost" id="btnEnterPortal" disabled>Enter the Transfer Portal</button>
+        <button class="button warn" id="btnNextWeek" disabled>Next Week (1/4)</button>
+        <button class="button ok" id="btnFinishPortal" disabled>Finalize Portal Class</button>
+        <button class="button" id="btnSimSeason" disabled>Simulate Season</button>
+      </div>
+    </section>
+
+    <section class="card" id="panelRosters">
+      <h2>Current Roster</h2>
+      <div class="tiny">15 offense + 15 defense baseline. Additions can exceed caps.</div>
+      <div class="row" style="margin-top:10px">
+        <div class="grow">
+          <h3>Offense</h3>
+          <div id="offenseList" class="list"></div>
+        </div>
+        <div class="grow">
+          <h3>Defense</h3>
+          <div id="defenseList" class="list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="panelPortal" style="display:none">
+      <div class="row drag-handle" style="justify-content:space-between;align-items:center">
+        <h2 style="margin:0">Transfer Portal</h2>
+        <button class="iconbtn" id="btnClosePortal" title="Close portal">✕ Close</button>
+      </div>
+      <div class="row">
+        <div class="grow"><label>Search</label><input id="searchPortal" placeholder="name / position / tier / school"/></div>
+        <div style="width:180px"><label>Filter Tier</label>
+          <select id="filterTier"><option value="">All</option></select>
+        </div>
+      </div>
+      <div class="tiny" style="margin-top:6px">Click a player to open the Offer panel. You can use ➕ / ➖ $1,000 steps, or type a custom amount.</div>
+      <div class="divider"></div>
+      <div id="portalList" class="list"></div>
+    </section>
+
+    <section class="card" id="panelOffer" style="display:none">
+      <h2>Offer Player</h2>
+      <div id="offerMeta" class="tiny">Select a player from the portal to begin.</div>
+      <div class="row" style="margin-top:10px">
+        <div class="grow">
+          <label>Offer Amount ($)</label>
+          <div class="row">
+            <button class="button" id="btnMinus">- $1,000</button>
+            <input id="offerInput" type="number" value="0" class="grow mono"/>
+            <button class="button" id="btnPlus">+ $1,000</button>
+          </div>
+        </div>
+      </div>
+      <div class="row right" style="margin-top:10px">
+        <button class="button" id="btnMakeOffer">Make Offer</button>
+      </div>
+      <div class="tiny" id="budgetNote"></div>
+      <div class="divider"></div>
+      <div id="offersThisWeek" class="tiny"></div>
+    </section>
+
+    <section class="card big-season" id="panelSeason" style="display:none">
+      <h2>Season Simulation</h2>
+      <div class="row">
+        <div class="grow"><span class="pill">Projected Record</span><div class="kpi mono" id="seasonRecord">--</div></div>
+        <div class="grow"><span class="pill">NIL Management Grade</span><div class="kpi" id="seasonGrade">--</div></div>
+      </div>
+      <div class="divider"></div>
+      <div><span class="pill">Roster Quality Index</span>
+        <div class="bar" style="margin-top:6px"><i id="barFill" style="width:0%"></i></div>
+        <div class="tiny" id="seasonNotes" style="margin-top:6px"></div>
+        <div class="flags" id="seasonFlags"></div>
+      </div>
+    </section>
+
+    <section class="card" id="panelClass" style="display:none">
+      <h2>New Additions</h2>
+      <div id="classList" class="list"></div>
+    </section>
+  </div>
+
+<script>
+// ===== Data: Programs (records from 2024 season, coaches for 2025) =====
+const PROGRAMS = {
+  ALA: { name: 'Alabama',      record2024: '9–4',  coach2025: 'Kalen DeBoer',      totalNIL: 18000000 },
+  CLE: { name: 'Clemson',      record2024: '10–4', coach2025: 'Dabo Swinney',      totalNIL: 16000000 },
+  FLA: { name: 'Florida',      record2024: '8–5',  coach2025: 'Billy Napier',      totalNIL: 15000000 },
+  FSU: { name: 'Florida State',record2024: '2–10', coach2025: 'Mike Norvell',      totalNIL: 15000000 },
+  GEO: { name: 'Georgia',      record2024: '11–3', coach2025: 'Kirby Smart',       totalNIL: 19000000 },
+  LSU: { name: 'LSU',          record2024: '9–4',  coach2025: 'Brian Kelly',       totalNIL: 17000000 },
+  MIA: { name: 'Miami',        record2024: '10–3', coach2025: 'Mario Cristobal',   totalNIL: 16000000 },
+  MICH:{ name: 'Michigan',     record2024: '8–5',  coach2025: 'Sherrone Moore',    totalNIL: 19000000 },
+  ND:  { name: 'Notre Dame',   record2024: '14–2', coach2025: 'Marcus Freeman',    totalNIL: 17500000 },
+  MISS:{ name: 'Ole Miss',     record2024: '10–3', coach2025: 'Lane Kiffin',       totalNIL: 14000000 },
+  ORE: { name: 'Oregon',       record2024: '13–1', coach2025: 'Dan Lanning',       totalNIL: 18500000 },
+  OKL: { name: 'Oklahoma',     record2024: '6–7',  coach2025: 'Brent Venables',    totalNIL: 17000000 },
+  OSU: { name: 'Ohio State',   record2024: '14–2', coach2025: 'Ryan Day',          totalNIL: 20000000 },
+  PSU: { name: 'Penn State',   record2024: '13–3', coach2025: 'James Franklin',    totalNIL: 17000000 },
+  TAMU:{ name: 'Texas A&M',    record2024: '8–5',  coach2025: 'Mike Elko',         totalNIL: 17500000 },
+  TENN:{ name: 'Tennessee',    record2024: '10–3', coach2025: 'Josh Heupel',       totalNIL: 17000000 },
+  TEX: { name: 'Texas',        record2024: '13–3', coach2025: 'Steve Sarkisian',   totalNIL: 21000000 },
+  USC: { name: 'USC',          record2024: '7–6',  coach2025: 'Lincoln Riley',     totalNIL: 17500000 }
+};
+
+// ===== Roster & portal generation =====
+const TIERS = [
+  { key:'Superstar', weight: 0.5, base: 1800000 },
+  { key:'Elite',     weight: 6,   base: 800000 },
+  { key:'High-Impact', weight: 16, base: 350000 },
+  { key:'Starter',   weight: 32,  base: 150000 },
+  { key:'Depth',     weight: 45,  base: 60000 },
+];
+const POSITIONS = {
+  offense:[
+    {abbr:'QB',  count:1,  mult:1.5},
+    {abbr:'RB',  count:2,  mult:1.0},
+    {abbr:'WR',  count:5,  mult:1.25},
+    {abbr:'OL',  count:5,  mult:1.1},
+    {abbr:'TE',  count:2,  mult:1.0},
+  ],
+  defense:[
+    {abbr:'DL',  count:3,  mult:1.1},
+    {abbr:'EDGE',count:3,  mult:1.25},
+    {abbr:'LB',  count:3,  mult:1.15},
+    {abbr:'DB',  count:6,  mult:1.0},
+  ]
+};
+const YEARS = ['Fr.','R-Fr.','So.','Jr.','Sr.'];
+const SCHOOLS_LAST = ['Oregon','USC','Florida State','Penn State','TCU','Utah','Clemson','Oklahoma','Notre Dame','Ole Miss','Washington','NC State','Virginia Tech','Iowa','Baylor','Kansas','Pitt','Wisconsin','UCF','Colorado'];
+
+const rand = (n)=>Math.floor(Math.random()*n);
+const sample = (arr)=>arr[rand(arr.length)];
+function weightedTier(){
+  const total = TIERS.reduce((s,t)=>s+t.weight,0);
+  let r = Math.random()*total;
+  for(const t of TIERS){ if((r-=t.weight)<0) return t; }
+  return TIERS[TIERS.length-1];
+}
+
+const FIRST = ['Jalen','Malik','Aiden','Noah','Lucas','Kai','Micah','Roman','Ethan','Caleb','Mason','Zion','Dante','Jace','Miles','Owen','Tyler','Cole','Jaxon','Ayden','Devin','Bryce','Kameron','Jett','Javion','Max','Logan','Preston','Quinn','Riley','Chase','Brody','Gavin','Beck','Cam','Darius','Emery','Griffin','Hayden','Isiah','Jared','Kade','Luca','Nate','Parker','Reese','Sean','Troy','Vince','Wes'];
+const LAST = ['Anderson','Williams','Jackson','Johnson','Thompson','Brown','Harris','Davis','Miller','Wilson','Moore','Taylor','Thomas','White','Martin','Lee','Perez','Thompson','Garcia','Martinez','Robinson','Clark','Lewis','Walker','Young','Allen','King','Wright','Scott','Torres','Nguyen','Rivera','Mitchell','Carter','Gomez','Reed','Cook','Morgan','Bell','Murphy','Bailey','Cooper','Richardson','Howard','Ward','Brooks','Gray','James','Hughes'];
+function fullName(){return `${sample(FIRST)} ${sample(LAST)}`}
+
+function makePlayer(pos){
+  const tier = weightedTier();
+  const yearIndex = rand(YEARS.length);
+  const eligLeft = Math.max(1, 5 - (yearIndex+1) + (Math.random()<0.25?1:0));
+  const value = Math.round(tier.base * (pos.mult || 1) * (1 + (Math.random()*0.35-0.1)));
+  return { id: crypto.randomUUID(), name: fullName(), tier: tier.key, base: value, pos: pos.abbr, year: YEARS[yearIndex], elig: eligLeft, last: sample(SCHOOLS_LAST) };
+}
+
+function makeRoster(){
+  const roster = { offense: [], defense: [] };
+  for(const p of POSITIONS.offense){ for(let i=0;i<p.count;i++) roster.offense.push(makePlayer(p)); }
+  for(const p of POSITIONS.defense){ for(let i=0;i<p.count;i++) roster.defense.push(makePlayer(p)); }
+  seedBaselineStars(roster);
+  return roster;
+}
+
+function seedBaselineStars(roster){
+  // Tiered baseline: Tier1 programs start with ~3 Superstars; others start with ~2
+  const tier1 = new Set(['Ohio State','Georgia','Alabama','Texas']);
+  const progName = (PROGRAMS[state.programKey]||{}).name || 'Ohio State';
+  const targetSupers = tier1.has(progName) ? 3 : 2; // future lower tiers could be 0
+  const targetElitesMin = tier1.has(progName) ? 3 : 2;
+  const targetElitesMax = tier1.has(progName) ? 5 : 4;
+
+  const all = [...roster.offense, ...roster.defense];
+  const count = (tier)=> all.filter(p=>p.tier===tier).length;
+  const needSupers = Math.max(0, targetSupers - count('Superstar'));
+  const targetElites = targetElitesMin + Math.floor(Math.random()*(targetElitesMax-targetElitesMin+1));
+  const needElites = Math.max(0, targetElites - count('Elite'));
+
+  const prefer = (pos)=> (pos==='QB'?4:(pos==='EDGE'||pos==='WR'?3:(pos==='OL'||pos==='DL'?2:1)));
+  const candidates = all.filter(p=> p.tier!=='Superstar').sort((a,b)=> prefer(b.pos)-prefer(a.pos));
+
+  let i=0;
+  for(let k=0;k<needSupers && i<candidates.length;k++,i++){
+    const p = candidates[i]; p.tier='Superstar';
+    const mult = (p.pos==='QB'?1.7:1.35);
+    p.base = Math.max(p.base, Math.round(1800000 * (p.pos==='QB'?1.3:1.0) * (1+Math.random()*0.2)));
+    p.base = Math.round(p.base*mult);
+  }
+  for(let k=0;k<needElites && i<candidates.length;k++,i++){
+    const p = candidates[i]; if(p.tier==='Superstar'){ k--; continue; }
+    p.tier='Elite';
+    const mult = (p.pos==='QB'?1.4:1.2);
+    p.base = Math.max(p.base, Math.round(800000 * (p.pos==='QB'?1.2:1.0) * (1+Math.random()*0.2)));
+    p.base = Math.round(p.base*mult);
+  }
+}
+
+function makePortalPool(n=500){
+  const cats = [...POSITIONS.offense, ...POSITIONS.defense];
+  const out = []; for(let i=0;i<n;i++) out.push(makePlayer(sample(cats)));
+  const superCount = out.filter(p=>p.tier==='Superstar').length;
+  if(superCount>n*0.03){
+    const toDowngrade = superCount - Math.floor(n*0.03); let changed = 0;
+    for(const p of out){ if(changed>=toDowngrade) break; if(p.tier==='Superstar'){ p.tier='Elite'; p.base = Math.round(p.base*0.6); changed++; }}
+  }
+  return out;
+}
+
+// ===== Game state =====
+let state = { programKey: 'OSU', week: 0, totalNIL: 0, portalBudget: 0, spent: 0, roster: null, portal: [], offers: {}, commits: [], selected: null };
+
+// ===== UI helpers =====
+function money(n){return '$'+Math.round(n).toLocaleString()}
+function el(tag,attrs={},children=[]) { const e = document.createElement(tag); for(const [k,v] of Object.entries(attrs)){ if(k==='class') e.className=v; else if(k==='text') e.textContent=v; else e.setAttribute(k,v);} for(const c of children){ if(typeof c==='string') e.appendChild(document.createTextNode(c)); else if(c) e.appendChild(c);} return e; }
+
+// ===== Rendering =====
+const selProgram = document.getElementById('programSelect');
+const progRecord = document.getElementById('progRecord');
+const progCoach  = document.getElementById('progCoach');
+const progTotal  = document.getElementById('progTotal');
+const progPortal = document.getElementById('progPortal');
+const btnGenRosters = document.getElementById('btnGenRosters');
+const btnEnterPortal = document.getElementById('btnEnterPortal');
+const btnNextWeek = document.getElementById('btnNextWeek');
+const btnFinishPortal = document.getElementById('btnFinishPortal');
+const btnSimSeason = document.getElementById('btnSimSeason');
+const offenseList = document.getElementById('offenseList');
+const defenseList = document.getElementById('defenseList');
+const panelPortal = document.getElementById('panelPortal');
+const panelOffer = document.getElementById('panelOffer');
+const portalList = document.getElementById('portalList');
+const filterTier = document.getElementById('filterTier');
+const searchPortal = document.getElementById('searchPortal');
+const offerMeta = document.getElementById('offerMeta');
+const offerInput = document.getElementById('offerInput');
+const btnPlus = document.getElementById('btnPlus');
+const btnMinus = document.getElementById('btnMinus');
+const btnMakeOffer = document.getElementById('btnMakeOffer');
+const budgetNote = document.getElementById('budgetNote');
+const offersThisWeek = document.getElementById('offersThisWeek');
+const classList = document.getElementById('classList');
+const panelClass = document.getElementById('panelClass');
+const seasonRecord = document.getElementById('seasonRecord');
+const seasonGrade = document.getElementById('seasonGrade');
+const seasonNotes = document.getElementById('seasonNotes');
+const barFill = document.getElementById('barFill');
+const panelSeason = document.getElementById('panelSeason');
+const seasonFlags = document.getElementById('seasonFlags');
+
+function initPrograms(){
+  selProgram.innerHTML = '';
+  const entries = Object.entries(PROGRAMS).sort((a,b)=> a[1].name.localeCompare(b[1].name));
+  entries.forEach(([k,v])=>{ const op = el('option',{value:k,text:v.name}); selProgram.appendChild(op); });
+  if(PROGRAMS[state.programKey]) selProgram.value = state.programKey; else selProgram.selectedIndex = 0;
+  state.programKey = selProgram.value;
+  updateProgram();
+}
+
+function updateProgram(){
+  const p = PROGRAMS[state.programKey];
+  state.totalNIL = p.totalNIL; state.portalBudget = Math.round(p.totalNIL*0.60);
+  progRecord.textContent = p.record2024; progCoach.textContent = p.coach2025;
+  progTotal.textContent = money(p.totalNIL); progPortal.textContent = money(state.portalBudget);
+  budgetNote.textContent = `Budget remaining: ${money(state.portalBudget - state.spent)} (spent ${money(state.spent)})`;
+}
+
+selProgram.addEventListener('change', ()=>{ state.programKey = selProgram.value; updateProgram(); });
+
+function renderRoster(){
+  const card = (p)=>{ const t = el('div',{class:'item'}); const head = el('div',{class:'row',style:'justify-content:space-between;align-items:center'}); head.appendChild(el('div',{text:`${p.name}`})); head.appendChild(el('div',{class:'tiny mono nowrap',text: money(p.base)})); const sub = el('div',{class:'tiny muted',text:`${p.tier} • ${p.pos} • ${p.year} • ${p.elig} yrs left`}); t.appendChild(head); t.appendChild(sub); return t; };
+  offenseList.innerHTML=''; defenseList.innerHTML='';
+  state.roster.offense.forEach(p=>offenseList.appendChild(card(p)));
+  state.roster.defense.forEach(p=>defenseList.appendChild(card(p)));
+}
+
+function renderPortal(list){
+  const items = list || state.portal; portalList.innerHTML='';
+  const card = (p)=>{ const it = el('div',{class:'item',tabindex:0}); it.addEventListener('click',()=>selectPlayer(p,it)); const head = el('div',{class:'row',style:'justify-content:space-between;align-items:center'}); head.appendChild(el('div',{text:`${p.name}`})); head.appendChild(el('div',{class:'tiny mono nowrap',text:money(p.base)})); it.appendChild(head); it.appendChild(el('div',{class:'tiny muted',text:`${p.tier} • ${p.pos} • ${p.year} • ${p.elig} yrs • from ${p.last}`})); return it; };
+  items.forEach(p=>portalList.appendChild(card(p)));
+}
+
+function selectPlayer(p, node){
+  [...portalList.children].forEach(c=>c.classList.remove('sel')); if(node) node.classList.add('sel');
+  state.selected = p; panelOffer.style.display = '';
+  offerInput.value = Math.min( Math.max(0, Math.round(p.base*0.6/1000)*1000 ), state.portalBudget - state.spent );
+  offerMeta.innerHTML = `<b>${p.name}</b> <span class="tag">${p.tier}</span> <span class="tag">${p.pos}</span> <span class="tag">${p.year}</span> <span class="tag">${p.elig} yrs</span> <span class="tag">from ${p.last}</span><br/> Market estimate: <b>${money(p.base)}</b>`;
+  updateBudgetNote();
+}
+
+function updateBudgetNote(){ budgetNote.textContent = `Budget remaining: ${money(state.portalBudget - state.spent)} (spent ${money(state.spent)})`; }
+
+btnPlus.addEventListener('click',()=>{ offerInput.value = (+offerInput.value||0)+1000; });
+btnMinus.addEventListener('click',()=>{ offerInput.value = Math.max(0,(+offerInput.value||0)-1000); });
+
+btnMakeOffer.addEventListener('click',()=>{
+  const p = state.selected; if(!p) return;
+  if(state.commits.some(c=>c.id===p.id)) { alert('This player has already signed and is no longer available.'); return; }
+  const amt = Math.round(Math.max(0,+offerInput.value||0));
+  if(state.spent + amt > state.portalBudget){ alert('Offer exceeds remaining portal budget.'); return; }
+  const week = state.week; if(!state.offers[week]) state.offers[week]=[];
+  // Cap offers to 5 per week for weeks 1-3 (index 0..2). Week 4 (index 3) unlimited
+  if(week < 3 && state.offers[week].length >= 5){
+    alert('Offer cap reached for this week (5). Click Next Week to continue making offers.');
+    return;
+  }
+  state.offers[week].push({ id:p.id, name:p.name, amt, player:p });
+  state.spent += amt; updateBudgetNote(); listOffersThisWeek();
+});
+
+function listOffersThisWeek(){
+  const week = state.week; const arr = state.offers[week]||[];
+  if(arr.length===0){ offersThisWeek.textContent = 'No offers this week yet.'; return; }
+  offersThisWeek.innerHTML = `<b>Week ${week+1} offers:</b><br>` + arr.map(o=>`- ${o.name} (${o.player.pos}, ${o.player.tier}) → ${money(o.amt)}`).join('<br>');
+}
+
+// ====== Game flow ======
+btnGenRosters.addEventListener('click',()=>{
+  state.roster = makeRoster(); state.portal = makePortalPool(500);
+  renderRoster(); renderPortal(); panelPortal.style.display='none'; panelOffer.style.display='none'; panelClass.style.display='none'; panelSeason.style.display='none';
+  btnEnterPortal.disabled=false; btnNextWeek.disabled=true; btnNextWeek.textContent='Next Week (1/4)'; btnFinishPortal.disabled=true; btnSimSeason.disabled=true;
+  state.week=0; state.offers={}; state.spent=0; state.commits=[]; updateBudgetNote();
+});
+
+btnEnterPortal.addEventListener('click',()=>{ panelPortal.style.display=''; panelOffer.style.display=''; btnNextWeek.disabled=false; btnFinishPortal.disabled=false; });
+
+document.getElementById('btnClosePortal').addEventListener('click',()=>{ panelPortal.style.display='none'; panelOffer.style.display='none'; });
+
+btnNextWeek.addEventListener('click',()=>{
+  if(state.week>=4){ return; }
+  // Resolve current week first, and KEEP the accepted/rejected summary visible
+  resolveWeek(state.week);
+  // Advance the week counter AFTER showing results so the panel isn't overwritten
+  state.week++;
+  // Update button text for the next week but DO NOT call listOffersThisWeek() here,
+  // because that would clear the weekly results we just displayed
+  if(state.week<4){ btnNextWeek.textContent = `Next Week (${state.week+1}/4)`; }
+  if(state.week===4){ btnNextWeek.disabled=true; }
+  // Bring the weekly results into view for user confirmation
+  offersThisWeek.scrollIntoView({behavior:'smooth',block:'center'});
+});
+
+btnFinishPortal.addEventListener('click',()=>{
+  while(state.week<4){ resolveWeek(state.week); state.week++; }
+  btnNextWeek.disabled=true; panelClass.style.display=''; classList.innerHTML='';
+  if(state.commits.length===0){ const empty = document.createElement('div'); empty.className='tiny muted'; empty.textContent='No additions signed. You can still simulate the season with your baseline roster.'; classList.appendChild(empty); }
+  else { state.commits.forEach(p=>{ const node = document.createElement('div'); node.className='item'; node.appendChild(el('div',{text:p.name})); node.appendChild(el('div',{class:'tiny muted',text:`${p.tier} • ${p.pos} • from ${p.last} • ${money(p.base)} • signed ${money(p.offer)}`})); classList.appendChild(node); }); }
+  const offSet = new Set(['QB','RB','WR','OL','TE']); for(const p of state.commits){ if(offSet.has(p.pos)) state.roster.offense.push(p); else state.roster.defense.push(p); }
+  renderRoster(); btnSimSeason.disabled=false; panelClass.scrollIntoView({behavior:'smooth'});
+});
+
+// ===== Season Simulation: up to 17 games with postseason =====
+function computeSeasonOutcome(){
+  // Base model
+  const classEval = computeClassPowerAndGrade();
+  const p = PROGRAMS[state.programKey];
+  const strength = rosterStrength();
+  const progBase = programBaseline(p);
+  const power = Math.min(1, Math.max(0, (0.60*strength + 0.30*progBase + 0.10*classEval.classPower)));
+  const bonusWins = classEval.bonusWins;
+  const expWins = 7 + 6*power + bonusWins;
+  const noise = (Math.random()*2.2 - 0.7);
+  let regWins = Math.max(0, Math.min(12, Math.round(expWins + noise)));
+
+  // Regular season completed (12 games)
+  let games = 12;
+  let wins = regWins;
+  const bowlEligible = regWins >= 6;
+
+  // Conference Championship appearance: scale with power & wins
+  let confAppearance = false, confChampWin = false;
+  const isND = (PROGRAMS[state.programKey]||{}).name === 'Notre Dame';
+  const confChance = isND ? 0 : Math.min(0.95, Math.max(0, 0.05 + 0.06*regWins + 0.35*power - 0.3));
+  if(Math.random() < confChance){
+    confAppearance = true; games += 1; // play conf title game
+    const confWinProb = Math.min(0.9, 0.35 + 0.4*power + 0.04*(regWins-8));
+    confChampWin = Math.random() < confWinProb;
+    if(confChampWin) wins += 1; // loss already counted via games later
+  }
+
+  // Playoff appearance: Conference champions are guaranteed in
+  let playoffAppearance = false, playoffGames = 0, natChamp = false;
+  const playoffBase = 0.04 + 0.07*regWins + 0.45*power + (confChampWin?0.12:0) + (classEval.grade.startsWith('A')?0.06:0);
+  const playoffProb = Math.min(0.98, Math.max(0, playoffBase - 0.55));
+  if(confChampWin || Math.random() < playoffProb){
+    playoffAppearance = true;
+    // 12-team playoff: top-4 seeds get a bye (3 wins to title), seeds 5–12 need 4 wins
+    const hasBye = (power > 0.80) && (Math.random() < 0.7); // strong teams likely a bye
+    const maxRounds = hasBye ? 3 : 4;
+    // Simulate rounds until loss or title; cap total games at 17
+    let roundsPlayed = 0, roundsWon = 0;
+    for(let r=0; r<maxRounds; r++){
+      if(games + 1 > 17) break; // cannot exceed 17
+      games += 1; roundsPlayed += 1; // playing the round
+      const winProb = Math.min(0.9, 0.45 + 0.40*power + 0.03*(regWins-9) + (confChampWin?0.02:0));
+      if(Math.random() < winProb){ wins += 1; roundsWon += 1; }
+      else { break; } // eliminated
+    }
+    playoffGames = roundsPlayed;
+    natChamp = (roundsWon === maxRounds); // won every required round
+
+    // Realism rule: playoff teams that are NOT champions must have at least one loss overall
+    if(playoffAppearance && !natChamp && wins === games){
+      if(games < 17){ games += 1; /* a loss in a subsequent round */ }
+      // no wins added -> effectively one loss
+    }
+  }
+
+  // Bowl only if not in playoff and eligible
+  let bowlPlayed = false, bowlWin = false;
+  if(!playoffAppearance && bowlEligible){
+    if(games + 1 <= 17){
+      games += 1; bowlPlayed = true;
+      const bowlWinProb = Math.min(0.9, 0.45 + 0.4*power + 0.04*(regWins-6));
+      if(Math.random() < bowlWinProb) { wins += 1; bowlWin = true; }
+    }
+  }
+
+  const losses = games - wins;
+  return {wins, losses, games, power, progBase, strength, grade: classEval.grade,
+          regWins, bowlEligible, bowlPlayed, bowlWin, confAppearance, confChampWin,
+          playoffAppearance, playoffGames, natChamp};
+}
+
+function computeClassPowerAndGrade(){
+  const wTier = {Superstar:1.0, Elite:0.8, 'High-Impact':0.55, Starter:0.30, Depth:0.10};
+  const posMult = (pos)=> pos==='QB'?1.5 : (pos==='EDGE'||pos==='WR'?1.2:1.0);
+  let pts = 0, sup=0, eli=0, hi=0;
+  for(const p of state.commits){
+    pts += (wTier[p.tier]||0.1) * posMult(p.pos);
+    if(p.tier==='Superstar') sup++; else if(p.tier==='Elite') eli++; else if(p.tier==='High-Impact') hi++;
+  }
+  const classValue = state.commits.reduce((t,p)=>t+p.base,0);
+  const spend = Math.max(1, state.spent);
+  const efficiency = Math.min(1.3, classValue/spend);
+  const normPts = Math.min(1, pts / 5.5);
+  const classPower = Math.min(1, 0.7*normPts + 0.3*((efficiency-0.8)/0.5));
+  const bonusWins = Math.min(2, (sup>=3?2:(sup>=2?1:0)) + (eli>=3?1:0));
+  const score = Math.min(1, 0.6*normPts + 0.4*Math.min(1, efficiency/1.1));
+  const grade = score>=0.96? 'A+' : score>=0.88? 'A' : score>=0.80? 'A-' : score>=0.72? 'B+' : score>=0.64? 'B' : score>=0.56? 'B-' : score>=0.48? 'C+' : score>=0.40? 'C' : 'C-';
+  return { classPower, grade, bonusWins };
+}
+
+btnSimSeason.addEventListener('click',()=>{
+  if(!state.roster){ state.roster = makeRoster(); }
+  const out = computeSeasonOutcome();
+  seasonRecord.textContent = `${out.wins}–${out.losses}`;
+  seasonGrade.textContent = out.grade;
+  seasonNotes.textContent = `Strength ${Math.round(out.power*100)} / 100 • Baseline ${Math.round(out.progBase*100)} • Roster ${Math.round(out.strength*100)}`;
+  barFill.style.width = Math.round(out.power*100)+'%';
+  const flags = [];
+  if(out.bowlEligible) flags.push('<span class="ftag win">Qualified for Bowl</span>');
+  if(out.confAppearance) flags.push('<span class="ftag win">Conference Championship Appearance</span>');
+  if(out.playoffAppearance) flags.push('<span class="ftag win">Playoff Appearance</span>');
+  if(out.natChamp) flags.push('<span class="ftag win">National Champions</span>');
+  seasonFlags.innerHTML = flags.join('');
+  panelSeason.style.display='';
+});
+
+function programBaseline(p){
+  const parts = String(p.record2024||'10-3').split(/[–-]/); const wins = parseInt(parts[0],10);
+  const safeWins = Number.isFinite(wins) ? wins : 10;
+  const base = 0.55 + Math.min(0.2, (safeWins-10)*0.02) + Math.min(0.1, (p.totalNIL-16000000)/1000000*0.004);
+  return Math.max(0.5, Math.min(0.95, base));
+}
+
+function rosterStrength(){
+  const all = [...state.roster.offense, ...state.roster.defense];
+  const tierScore = {Superstar:1.0, Elite:0.9, 'High-Impact':0.75, Starter:0.6, Depth:0.45};
+  let s=0; all.forEach(p=>{ s += (tierScore[p.tier]||0.5) * (p.pos==='QB'?1.35:1.0); });
+  const avg = s / Math.max(1,all.length); const spend = Math.max(1,state.spent);
+  const valueGain = state.commits.reduce((t,p)=>t+p.base,0); const efficiency = Math.min(1.2, Math.max(0.85, valueGain/spend));
+  return Math.min(1, avg*0.85 + 0.15*efficiency);
+}
+
+function resolveWeek(week){
+  const offers = state.offers[week]||[];
+  const committedIds = new Set(state.commits.map(c=>c.id));
+  let accepted = 0, refunded = 0, rejected = 0;
+  const acceptedList = [];
+  const rejectedList = [];
+
+  for(const o of offers){
+    const p = o.player;
+    if(committedIds.has(p.id)) { continue; }
+    const prestige = programPrestige(PROGRAMS[state.programKey]);
+    const needFactor = positionNeed(p.pos||'');
+    const baseVal = p.base||250000;
+    const effectiveMarket = baseVal * (0.9 + Math.random()*0.2) / prestige;
+    const ratio = o.amt / Math.max(1,effectiveMarket);
+    let prob = 0.08 + 0.65*Math.min(1, ratio) + 0.12*needFactor;
+    if(ratio>1.2) prob = Math.min(0.97, prob + 0.10*(ratio-1.2));
+
+    if(Math.random() < prob){
+      if(!committedIds.has(p.id)){
+        p.offer = o.amt; p.fromWeek = week+1; state.commits.push(p); committedIds.add(p.id);
+        state.portal = state.portal.filter(x=>x.id!==p.id);
+        accepted++; acceptedList.push(`${p.name} (${p.pos}, ${p.tier}) for ${money(o.amt)}`);
+      }
+    } else {
+      state.spent = Math.max(0, state.spent - o.amt);
+      refunded += o.amt; rejected++; rejectedList.push(`${o.player.name} (${o.player.pos}, ${o.player.tier}) rejected ${money(o.amt)}`);
+    }
+  }
+
+  for(const k of Object.keys(state.offers)){
+    state.offers[k] = (state.offers[k]||[]).filter(x=>!committedIds.has(x.id));
+  }
+  state.offers[week] = [];
+
+  // Attrition: pool stays full through week 2, then shrinks
+  let attritionRate = 0;
+  if(week===2) attritionRate = 0.30; // after W3 resolution
+  else if(week>2) attritionRate = 0.50;
+  if(attritionRate>0 && state.portal.length>0){
+    const toCull = Math.max(0, Math.floor(state.portal.length * attritionRate));
+    for(let i=0;i<toCull;i++){
+      const idx = Math.floor(Math.random()*state.portal.length);
+      state.portal.splice(idx,1);
+    }
+  }
+
+  renderPortal();
+  updateBudgetNote();
+  const refundMsg = refunded>0 ? ` Refunded ${money(refunded)} from rejected offers.` : '';
+  const acceptedHtml = acceptedList.length? ('<br><b>Accepted this week:</b><br>' + acceptedList.map(x=>'<span class="oktext">• '+x+'</span>').join('<br>')) : '';
+  const rejectedHtml = rejectedList.length? ('<br><b>Rejected this week:</b><br>' + rejectedList.map(x=>'<span class="rejtext">• '+x+'</span>').join('<br>')) : '';
+  offersThisWeek.innerHTML = `Week ${week+1} resolved: ${accepted} signed, ${rejected} rejected.${refundMsg}` + acceptedHtml + rejectedHtml;
+}
+
+function programPrestige(p){
+  const map = { 'Alabama':1.08,'Clemson':1.05,'Florida':1.03,'Florida State':1.02,'Georgia':1.10,
+    'LSU':1.05,'Miami':1.02,'Michigan':1.11,'Notre Dame':1.08,'Ole Miss':1.04,
+    'Oregon':1.10,'Oklahoma':1.07,'Ohio State':1.12,'Penn State':1.06,
+    'Texas A&M':1.05,'Tennessee':1.05,'Texas':1.10,'USC':1.06 };
+  return map[p.name] || 1.0;
+}
+
+function positionNeed(pos){
+  const needMap = { QB:1, RB:2, WR:5, OL:5, TE:2, DL:3, EDGE:3, LB:3, DB:6 };
+  const current = [...state.roster.offense, ...state.roster.defense].filter(p=>p.pos===pos).length;
+  const base = needMap[pos]||2; if(current < base) return Math.min(1.0, 0.4 + (base-current)*0.2); if(current > base+2) return 0.0; return 0.2;
+}
+
+// Search & filter
+filterTier.innerHTML = '<option value="">All</option>' + TIERS.map(t=>`<option value="${t.key}">${t.key}</option>`).join('');
+function applyFilters(){ const q = (searchPortal.value||'').toLowerCase(); const tier = filterTier.value; const res = state.portal.filter(p=>{ const hay = `${p.name.toLowerCase()} ${p.pos.toLowerCase()} ${p.tier.toLowerCase()} ${p.last.toLowerCase()}`; const matchQ = q? hay.includes(q) : true; const matchT = tier? p.tier===tier : true; return matchQ && matchT; }); renderPortal(res); }
+searchPortal.addEventListener('input', applyFilters); filterTier.addEventListener('change', applyFilters);
+
+// Init
+initPrograms(); updateProgram(); state.roster = makeRoster(); state.portal = makePortalPool(500); renderRoster(); renderPortal();
+
+// ===== Tests =====
+(function runSanityTests(){
+  function test(name, fn){ try{ const ok = fn(); console[ok? 'log':'warn'](`${ok?'✅':'⚠️'} ${name}`); }catch(e){ console.error(`❌ ${name}`, e);} }
+  test('PROGRAMS has entries', ()=> Object.keys(PROGRAMS).length >= 6 );
+  test('Program selector populated with all programs', ()=> document.getElementById('programSelect').options.length===Object.keys(PROGRAMS).length );
+  test('Buttons exist', ()=> !!(btnGenRosters&&btnEnterPortal&&btnNextWeek&&btnFinishPortal&&btnSimSeason) );
+  test('Season outcome sums correctly and game count between 12 and 17', ()=>{ const r = computeSeasonOutcome(); return (r.wins+r.losses===r.games) && (r.games>=12 && r.games<=17); });
+  test('Program dropdown is alphabetized', ()=>{ const opts=[...selProgram.options].map(o=>o.text); const sorted=[...opts].sort((a,b)=>a.localeCompare(b)); return JSON.stringify(opts)===JSON.stringify(sorted); });
+  test('Attrition after week 3 reduces pool', ()=>{ const before=state.portal.length; state.offers[2]=[]; resolveWeek(2); const after=state.portal.length; return after<before; });
+  test('Offer cap enforced pre-week4 (max 5)', ()=>{ state.week=0; state.offers[0]=[]; const dummy=makePlayer({abbr:'QB',mult:1}); state.selected=dummy; offerInput.value=1000; for(let i=0;i<7;i++){ if(state.offers[0].length<5){ state.offers[0].push({id:crypto.randomUUID(),name:'X',amt:1000,player:dummy}); } } return state.offers[0].length<=5; });
+})();
+
+// === Draggable behavior for the Transfer Portal panel ===
+(function enableDraggablePortal(){
+  const panel = document.getElementById('panelPortal');
+  const handle = panel ? panel.querySelector('.drag-handle') : null;
+  if(!panel || !handle) return;
+
+  let isDragging = false;
+  let offsetX = 0, offsetY = 0;
+  let startX = 0, startY = 0;
+
+  function onDown(e){
+    // Only start dragging with left mouse or touch
+    const isTouch = e.type.startsWith('touch');
+    const point = isTouch ? e.touches[0] : e;
+    isDragging = true;
+    panel.classList.add('dragging');
+    const rect = panel.getBoundingClientRect();
+    offsetX = point.clientX - rect.left;
+    offsetY = point.clientY - rect.top;
+    startX = point.clientX;
+    startY = point.clientY;
+    document.addEventListener(isTouch?'touchmove':'mousemove', onMove, {passive:false});
+    document.addEventListener(isTouch?'touchend':'mouseup', onUp, {passive:false});
+  }
+  function onMove(e){
+    if(!isDragging) return;
+    const isTouch = e.type.startsWith('touch');
+    const point = isTouch ? e.touches[0] : e;
+    const vx = Math.max(8, Math.min(window.innerWidth - panel.offsetWidth - 8, point.clientX - offsetX));
+    const vy = Math.max(8, Math.min(window.innerHeight - 40, point.clientY - offsetY));
+    panel.style.left = vx + 'px';
+    panel.style.top  = vy + 'px';
+    if(!panel.classList.contains('draggable')) panel.classList.add('draggable');
+    if(e.cancelable) e.preventDefault();
+  }
+  function onUp(e){
+    isDragging = false;
+    panel.classList.remove('dragging');
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+  }
+
+  // Activate drag only when the portal is opened, keep position persistent between opens
+  btnEnterPortal.addEventListener('click', ()=>{
+    panel.style.display='';
+    // ensure floating mode
+    panel.classList.add('draggable');
+    // If no previous position stored, keep default
+    const stored = JSON.parse(localStorage.getItem('portalPanelPos') || 'null');
+    if(stored && typeof stored.x==='number' && typeof stored.y==='number'){
+      panel.style.left = stored.x + 'px';
+      panel.style.top  = stored.y + 'px';
+    }
+  });
+  document.getElementById('btnClosePortal').addEventListener('click', ()=>{
+    // store position
+    const rect = panel.getBoundingClientRect();
+    localStorage.setItem('portalPanelPos', JSON.stringify({x: rect.left, y: rect.top}));
+    panel.style.display='none';
+  });
+
+  handle.addEventListener('mousedown', onDown);
+  handle.addEventListener('touchstart', onDown, {passive:false});
+})();
+
+</script>
+</body>
+</html>
