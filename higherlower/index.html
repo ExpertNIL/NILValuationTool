@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>College Football Higher or Lower — ExpertNIL</title>
+<style>
+  :root{ --bg:#1a1a1a; --card:#111; --ink:#eaeaea; --muted:#a7a7a7; --accent:#ffffff; --line:#2a2a2a; --brand:#8affc1; --warn:#ffd166; --danger:#ff5c5c; --ok:#8aff8a; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";line-height:1.45;padding:22px}
+  .logo{max-width:240px;opacity:.95;margin:6px 0 18px 4px}
+  .card{background:var(--card);border-radius:18px;padding:18px;border:1px solid var(--line);box-shadow:0 10px 40px rgba(0,0,0,.35)}
+  h1{margin:6px 0 12px;font-size:26px;letter-spacing:.2px}
+  .versus{display:grid;grid-template-columns:1fr 80px 1fr;gap:14px;align-items:stretch}
+  .vs-pill{display:flex;align-items:center;justify-content:center;border:1px dashed var(--line);border-radius:16px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .ath-card{position:relative;border:1px solid var(--line);border-radius:16px;background:#121212;padding:16px;overflow:hidden}
+  .name{font-size:22px;font-weight:800}
+  .meta{font-size:13px;color:var(--muted);margin-top:4px}
+  .value{margin-top:10px;font-size:28px;font-weight:900;letter-spacing:.5px}
+  .value.hidden::after{content:"?"}
+  .kicker{font-size:12px;color:var(--muted)}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .button{padding:12px 14px;border-radius:14px;border:1px solid #2d2d2d;background:var(--accent);color:#000;font-weight:800;cursor:pointer;flex:1;min-width:140px}
+  .button.ghost{background:#171717;color:var(--ink)}
+  .scorebug{position:sticky;top:10px;display:flex;gap:10px;justify-content:flex-end}
+  .chip{background:#1d1d1d;border:1px solid var(--line);padding:6px 12px;border-radius:999px;font-size:13px;color:#a7a7a7}
+  .chip b{color:var(--ink)}
+  .divider{height:1px;background:var(--line);margin:12px 0}
+  .subtle{font-size:12px;color:var(--muted)}
+  /* Animations */
+  .pop{animation:pop .35s ease-out}
+  @keyframes pop{0%{transform:scale(.96);opacity:.5}100%{transform:scale(1);opacity:1}}
+  .slide-in{animation:slide-in .45s ease-out}
+  @keyframes slide-in{0%{transform:translateX(18px);opacity:0}100%{transform:translateX(0);opacity:1}}
+  .swap-left{animation:swap-left .45s ease-in-out}
+  @keyframes swap-left{0%{transform:translateX(0)}100%{transform:translateX(-10px)}}
+  .win{box-shadow:0 0 0 3px rgba(138,255,138,.35) inset, 0 0 30px rgba(138,255,138,.15)}
+  .lose{box-shadow:0 0 0 3px rgba(255,92,92,.35) inset, 0 0 30px rgba(255,92,92,.15)}
+  .toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#0f1a12;border:1px solid #234;color:#caffca;border-radius:12px;padding:10px 14px;font-weight:700;opacity:0;pointer-events:none}
+  .toast.show{animation:fade .8s ease-out}
+  @keyframes fade{0%{opacity:0;transform:translate(-50%,-6px)}20%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0}}
+  .reveal{position:absolute;inset:0;background:linear-gradient(135deg, rgba(198,255,221,.08), rgba(251,215,134,.08), rgba(247,121,125,.08));pointer-events:none;opacity:0}
+  .ath-card.revealed .reveal{opacity:1;animation:shine 600ms ease-out}
+  @keyframes shine{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0 0 0 0)}}
+  .footer{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .hint{font-size:12px;color:var(--muted)}
+  .reset{border:1px solid var(--line);background:#171717;color:#eaeaea;padding:10px 12px;border-radius:10px;cursor:pointer}
+</style>
+</head>
+<body>
+  <img class="logo" src="logo.png" alt="ExpertNIL"/>
+  <div class="scorebug">
+    <span class="chip">Streak: <b id="streak">0</b></span>
+    <span class="chip">Best: <b id="best">0</b></span>
+  </div>
+
+  <section class="card">
+    <h1>College Football Higher or Lower — <span style="color: var(--brand); font-weight: 900;">ExpertNIL</span></h1>
+    <div class="subtle">Pick whether the challenger’s <b>win total</b> is higher or lower than the one on the left. If the totals are tied, your guess counts as <b>correct</b>. Miss once and your streak resets.</div>
+
+    <div class="divider"></div>
+
+    <div class="versus">
+      <div class="ath-card pop" id="leftCard">
+        <div class="name" id="leftName">—</div>
+        <div class="meta" id="leftMeta">—</div>
+        <div class="value" id="leftValue">—</div>
+        <div class="kicker">Win Total</div>
+        <div class="reveal"></div>
+      </div>
+
+      <div class="vs-pill">VS</div>
+
+      <div class="ath-card pop" id="rightCard">
+        <div class="name" id="rightName">—</div>
+        <div class="meta" id="rightMeta">—</div>
+        <div class="value hidden" id="rightValue"></div>
+        <div class="kicker">Higher or Lower?</div>
+        <div class="reveal"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="button" id="btnHigher">Higher</button>
+      <button class="button ghost" id="btnLower">Lower</button>
+      <button class="reset" id="btnReset">Reset</button>
+    </div>
+
+    <div class="divider"></div>
+    <div class="footer">
+      <span class="hint">After each correct guess, the challenger replaces the left card and a new challenger slides in. Ties count as correct.</span>
+    </div>
+  </section>
+
+  <div class="toast" id="toast">Nice!</div>
+
+<script>
+// ===== Utilities =====
+const el = (id) => document.getElementById(id);
+const toast = (msg)=>{ const t=el('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 900); };
+function formatTeamYear(row){ return `${row.team} (${row.year})`; }
+function formatWins(n){ return `${n} win${n===1?'':'s'}`; }
+function sample(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+// ===== Embedded Dataset (exact list you provided) =====
+const DATA = [
+{team:'Alabama',year:2007,wins:9},
+{team:'Alabama',year:2010,wins:11},
+{team:'Alabama',year:2012,wins:10},
+{team:'Alabama',year:2014,wins:10},
+{team:'Alabama',year:2016,wins:10},
+{team:'Alabama',year:2018,wins:9},
+{team:'Alabama',year:2021,wins:13},
+{team:'Alabama',year:2023,wins:9},
+{team:'Arizona',year:1993,wins:6},
+{team:'Arizona',year:2007,wins:9},
+{team:'Arizona',year:2010,wins:9},
+{team:'Arizona',year:2012,wins:5},
+{team:'Arizona',year:2014,wins:8},
+{team:'Arizona',year:2016,wins:9},
+{team:'Arizona',year:2021,wins:5},
+{team:'Arizona',year:2023,wins:10},
+{team:'Arizona State',year:1991,wins:8},
+{team:'Arizona State',year:2008,wins:8},
+{team:'Arizona State',year:2011,wins:5},
+{team:'Arizona State',year:2013,wins:10},
+{team:'Arizona State',year:2017,wins:7},
+{team:'Arizona State',year:2019,wins:10},
+{team:'Arizona State',year:2020,wins:5},
+{team:'Arizona State',year:2024,wins:10},
+{team:'Arkansas',year:2007,wins:8},
+{team:'Arkansas',year:2010,wins:10},
+{team:'Arkansas',year:2012,wins:9},
+{team:'Arkansas',year:2014,wins:9},
+{team:'Arkansas',year:2016,wins:9},
+{team:'Arkansas',year:2018,wins:7},
+{team:'Arkansas',year:2021,wins:8},
+{team:'Arkansas',year:2023,wins:9},
+{team:'Auburn',year:2008,wins:9},
+{team:'Auburn',year:2011,wins:9},
+{team:'Auburn',year:2013,wins:6},
+{team:'Auburn',year:2015,wins:6},
+{team:'Auburn',year:2017,wins:7},
+{team:'Auburn',year:2019,wins:6},
+{team:'Auburn',year:2020,wins:9},
+{team:'Auburn',year:2024,wins:9},
+{team:'BYU',year:1992,wins:7},
+{team:'BYU',year:2008,wins:5},
+{team:'BYU',year:2013,wins:6},
+{team:'BYU',year:2015,wins:8},
+{team:'BYU',year:2017,wins:7},
+{team:'BYU',year:2019,wins:7},
+{team:'BYU',year:2020,wins:6},
+{team:'BYU',year:2024,wins:6},
+{team:'Baylor',year:2007,wins:5},
+{team:'Baylor',year:2010,wins:6},
+{team:'Baylor',year:2012,wins:8},
+{team:'Baylor',year:2014,wins:5},
+{team:'Baylor',year:2016,wins:8},
+{team:'Baylor',year:2018,wins:7},
+{team:'Baylor',year:2021,wins:8},
+{team:'Baylor',year:2023,wins:7},
+{team:'Boise State',year:2007,wins:5},
+{team:'Boise State',year:2010,wins:6},
+{team:'Boise State',year:2012,wins:10},
+{team:'Boise State',year:2014,wins:7},
+{team:'Boise State',year:2016,wins:8},
+{team:'Boise State',year:2018,wins:10},
+{team:'Boise State',year:2021,wins:10},
+{team:'Boise State',year:2023,wins:6},
+{team:'Cincinnati',year:1998,wins:7},
+{team:'Cincinnati',year:2007,wins:9},
+{team:'Cincinnati',year:2010,wins:6},
+{team:'Cincinnati',year:2012,wins:8},
+{team:'Cincinnati',year:2014,wins:6},
+{team:'Cincinnati',year:2016,wins:5},
+{team:'Cincinnati',year:2021,wins:5},
+{team:'Cincinnati',year:2023,wins:7},
+{team:'Clemson',year:1999,wins:11},
+{team:'Clemson',year:2007,wins:11},
+{team:'Clemson',year:2010,wins:13},
+{team:'Clemson',year:2012,wins:10},
+{team:'Clemson',year:2014,wins:9},
+{team:'Clemson',year:2018,wins:10},
+{team:'Clemson',year:2021,wins:11},
+{team:'Clemson',year:2023,wins:9},
+{team:'Colorado',year:2008,wins:5},
+{team:'Colorado',year:2011,wins:7},
+{team:'Colorado',year:2013,wins:6},
+{team:'Colorado',year:2015,wins:9},
+{team:'Colorado',year:2017,wins:7},
+{team:'Colorado',year:2019,wins:5},
+{team:'Colorado',year:2020,wins:5},
+{team:'Colorado',year:2024,wins:9},
+{team:'Duke',year:2007,wins:7},
+{team:'Duke',year:2010,wins:7},
+{team:'Duke',year:2012,wins:5},
+{team:'Duke',year:2014,wins:5},
+{team:'Duke',year:2016,wins:4},
+{team:'Duke',year:2018,wins:8},
+{team:'Duke',year:2021,wins:8},
+{team:'Duke',year:2023,wins:5},
+{team:'Florida',year:2007,wins:10},
+{team:'Florida',year:2010,wins:7},
+{team:'Florida',year:2012,wins:9},
+{team:'Florida',year:2014,wins:6},
+{team:'Florida',year:2016,wins:9},
+{team:'Florida',year:2018,wins:5},
+{team:'Florida',year:2021,wins:10},
+{team:'Florida',year:2023,wins:7},
+{team:'Florida State',year:1983,wins:12},
+{team:'Florida State',year:2011,wins:11},
+{team:'Florida State',year:2013,wins:9},
+{team:'Florida State',year:2015,wins:11},
+{team:'Florida State',year:2017,wins:12},
+{team:'Florida State',year:2019,wins:10},
+{team:'Florida State',year:2020,wins:12},
+{team:'Florida State',year:2024,wins:9},
+{team:'Georgia',year:1980,wins:8},
+{team:'Georgia',year:2011,wins:10},
+{team:'Georgia',year:2013,wins:13},
+{team:'Georgia',year:2015,wins:13},
+{team:'Georgia',year:2017,wins:9},
+{team:'Georgia',year:2019,wins:13},
+{team:'Georgia',year:2020,wins:10},
+{team:'Georgia',year:2024,wins:13},
+{team:'Houston',year:1983,wins:11},
+{team:'Houston',year:2008,wins:7},
+{team:'Houston',year:2011,wins:9},
+{team:'Houston',year:2013,wins:8},
+{team:'Houston',year:2017,wins:6},
+{team:'Houston',year:2019,wins:6},
+{team:'Houston',year:2020,wins:6},
+{team:'Houston',year:2024,wins:6},
+{team:'Illinois',year:2008,wins:6},
+{team:'Illinois',year:2011,wins:10},
+{team:'Illinois',year:2013,wins:10},
+{team:'Illinois',year:2015,wins:8},
+{team:'Illinois',year:2017,wins:8},
+{team:'Illinois',year:2019,wins:8},
+{team:'Illinois',year:2020,wins:6},
+{team:'Illinois',year:2024,wins:6},
+{team:'Indiana',year:2007,wins:6},
+{team:'Indiana',year:2010,wins:8},
+{team:'Indiana',year:2012,wins:9},
+{team:'Indiana',year:2014,wins:5},
+{team:'Indiana',year:2016,wins:8},
+{team:'Indiana',year:2018,wins:8},
+{team:'Indiana',year:2021,wins:10},
+{team:'Indiana',year:2023,wins:9},
+{team:'Iowa',year:2007,wins:6},
+{team:'Iowa',year:2010,wins:5},
+{team:'Iowa',year:2012,wins:5},
+{team:'Iowa',year:2014,wins:7},
+{team:'Iowa',year:2016,wins:5},
+{team:'Iowa',year:2018,wins:9},
+{team:'Iowa',year:2021,wins:6},
+{team:'Iowa',year:2023,wins:7},
+{team:'Kansas',year:2008,wins:10},
+{team:'Kansas',year:2011,wins:9},
+{team:'Kansas',year:2013,wins:8},
+{team:'Kansas',year:2015,wins:9},
+{team:'Kansas',year:2017,wins:8},
+{team:'Kansas',year:2019,wins:6},
+{team:'Kansas',year:2020,wins:10},
+{team:'Kansas',year:2024,wins:8},
+{team:'Kansas State',year:1983,wins:5},
+{team:'Kansas State',year:2011,wins:10},
+{team:'Kansas State',year:2013,wins:7},
+{team:'Kansas State',year:2015,wins:5},
+{team:'Kansas State',year:2017,wins:6},
+{team:'Kansas State',year:2019,wins:6},
+{team:'Kansas State',year:2020,wins:6},
+{team:'Kansas State',year:2024,wins:9},
+{team:'Kentucky',year:1997,wins:9},
+{team:'Kentucky',year:2010,wins:5},
+{team:'Kentucky',year:2012,wins:6},
+{team:'Kentucky',year:2014,wins:7},
+{team:'Kentucky',year:2016,wins:5},
+{team:'Kentucky',year:2018,wins:5},
+{team:'Kentucky',year:2021,wins:10},
+{team:'Kentucky',year:2023,wins:9},
+{team:'LSU',year:2008,wins:9},
+{team:'LSU',year:2011,wins:12},
+{team:'LSU',year:2013,wins:11},
+{team:'LSU',year:2015,wins:12},
+{team:'LSU',year:2017,wins:11},
+{team:'LSU',year:2019,wins:10},
+{team:'LSU',year:2020,wins:11},
+{team:'LSU',year:2024,wins:11},
+{team:'Louisville',year:2008,wins:5},
+{team:'Louisville',year:2011,wins:6},
+{team:'Louisville',year:2013,wins:7},
+{team:'Louisville',year:2015,wins:7},
+{team:'Louisville',year:2017,wins:6},
+{team:'Louisville',year:2019,wins:8},
+{team:'Louisville',year:2020,wins:9},
+{team:'Louisville',year:2024,wins:10},
+{team:'Maryland',year:2007,wins:8},
+{team:'Maryland',year:2010,wins:7},
+{team:'Maryland',year:2012,wins:6},
+{team:'Maryland',year:2014,wins:10},
+{team:'Maryland',year:2016,wins:7},
+{team:'Maryland',year:2018,wins:9},
+{team:'Maryland',year:2021,wins:8},
+{team:'Maryland',year:2023,wins:10},
+{team:'Miami',year:1991,wins:12},
+{team:'Miami',year:1996,wins:9},
+{team:'Miami',year:2001,wins:12},
+{team:'Miami',year:2002,wins:12},
+{team:'Miami',year:2007,wins:5},
+{team:'Miami',year:2011,wins:6},
+{team:'Miami',year:2016,wins:9},
+{team:'Michigan',year:1983,wins:11},
+{team:'Michigan',year:2008,wins:11},
+{team:'Michigan',year:2011,wins:11},
+{team:'Michigan',year:2013,wins:13},
+{team:'Michigan',year:2015,wins:11},
+{team:'Michigan',year:2017,wins:9},
+{team:'Michigan',year:2019,wins:12},
+{team:'Michigan',year:2024,wins:12},
+{team:'Michigan State',year:2008,wins:6},
+{team:'Michigan State',year:2011,wins:9},
+{team:'Michigan State',year:2013,wins:6},
+{team:'Michigan State',year:2015,wins:10},
+{team:'Michigan State',year:2017,wins:9},
+{team:'Michigan State',year:2019,wins:9},
+{team:'Michigan State',year:2020,wins:8},
+{team:'Michigan State',year:2024,wins:6},
+{team:'Minnesota',year:2007,wins:5},
+{team:'Minnesota',year:2010,wins:7},
+{team:'Minnesota',year:2012,wins:9},
+{team:'Minnesota',year:2014,wins:10},
+{team:'Minnesota',year:2016,wins:10},
+{team:'Minnesota',year:2018,wins:9},
+{team:'Minnesota',year:2021,wins:7},
+{team:'Minnesota',year:2023,wins:5},
+{team:'Mississippi State',year:2007,wins:10},
+{team:'Mississippi State',year:2010,wins:10},
+{team:'Mississippi State',year:2012,wins:5},
+{team:'Mississippi State',year:2014,wins:5},
+{team:'Mississippi State',year:2016,wins:8},
+{team:'Mississippi State',year:2018,wins:6},
+{team:'Mississippi State',year:2021,wins:6},
+{team:'Mississippi State',year:2023,wins:10},
+{team:'Missouri',year:2008,wins:8},
+{team:'Missouri',year:2011,wins:10},
+{team:'Missouri',year:2013,wins:6},
+{team:'Missouri',year:2015,wins:9},
+{team:'Missouri',year:2017,wins:8},
+{team:'Missouri',year:2019,wins:10},
+{team:'Missouri',year:2020,wins:6},
+{team:'Missouri',year:2024,wins:10},
+{team:'NC State',year:1992,wins:10},
+{team:'NC State',year:2008,wins:5},
+{team:'NC State',year:2011,wins:9},
+{team:'NC State',year:2013,wins:6},
+{team:'NC State',year:2017,wins:5},
+{team:'NC State',year:2019,wins:9},
+{team:'NC State',year:2020,wins:5},
+{team:'NC State',year:2024,wins:8},
+{team:'Nebraska',year:2007,wins:8},
+{team:'Nebraska',year:2010,wins:6},
+{team:'Nebraska',year:2012,wins:5},
+{team:'Nebraska',year:2014,wins:5},
+{team:'Nebraska',year:2016,wins:10},
+{team:'Nebraska',year:2018,wins:8},
+{team:'Nebraska',year:2021,wins:7},
+{team:'Nebraska',year:2023,wins:8},
+{team:'North Carolina',year:1998,wins:9},
+{team:'North Carolina',year:2010,wins:9},
+{team:'North Carolina',year:2012,wins:6},
+{team:'North Carolina',year:2014,wins:5},
+{team:'North Carolina',year:2016,wins:9},
+{team:'North Carolina',year:2018,wins:5},
+{team:'North Carolina',year:2021,wins:6},
+{team:'North Carolina',year:2023,wins:5},
+{team:'Notre Dame',year:1986,wins:12},
+{team:'Notre Dame',year:2007,wins:13},
+{team:'Notre Dame',year:2010,wins:10},
+{team:'Notre Dame',year:2012,wins:11},
+{team:'Notre Dame',year:2014,wins:12},
+{team:'Notre Dame',year:2016,wins:11},
+{team:'Notre Dame',year:2018,wins:12},
+{team:'Notre Dame',year:2023,wins:9},
+{team:'Ohio State',year:1998,wins:10},
+{team:'Ohio State',year:2007,wins:11},
+{team:'Ohio State',year:2010,wins:9},
+{team:'Ohio State',year:2012,wins:10},
+{team:'Ohio State',year:2014,wins:12},
+{team:'Ohio State',year:2016,wins:11},
+{team:'Ohio State',year:2018,wins:11},
+{team:'Ohio State',year:2021,wins:10},
+{team:'Oklahoma',year:1982,wins:10},
+{team:'Oklahoma',year:2007,wins:13},
+{team:'Oklahoma',year:2010,wins:10},
+{team:'Oklahoma',year:2012,wins:13},
+{team:'Oklahoma',year:2014,wins:10},
+{team:'Oklahoma',year:2018,wins:12},
+{team:'Oklahoma',year:2021,wins:11},
+{team:'Oklahoma',year:2023,wins:13},
+{team:'Oklahoma State',year:1985,wins:3},
+{team:'Oklahoma State',year:2007,wins:7},
+{team:'Oklahoma State',year:2010,wins:8},
+{team:'Oklahoma State',year:2012,wins:6},
+{team:'Oklahoma State',year:2014,wins:5},
+{team:'Oklahoma State',year:2016,wins:8},
+{team:'Oklahoma State',year:2018,wins:9},
+{team:'Oklahoma State',year:2023,wins:10},
+{team:'Ole Miss',year:2008,wins:9},
+{team:'Ole Miss',year:2011,wins:8},
+{team:'Ole Miss',year:2013,wins:5},
+{team:'Ole Miss',year:2015,wins:9},
+{team:'Ole Miss',year:2017,wins:6},
+{team:'Ole Miss',year:2019,wins:5},
+{team:'Ole Miss',year:2020,wins:8},
+{team:'Ole Miss',year:2024,wins:6},
+{team:'Oregon',year:1991,wins:8},
+{team:'Oregon',year:2008,wins:10},
+{team:'Oregon',year:2011,wins:10},
+{team:'Oregon',year:2013,wins:13},
+{team:'Oregon',year:2015,wins:12},
+{team:'Oregon',year:2017,wins:9},
+{team:'Oregon',year:2019,wins:9},
+{team:'Oregon',year:2024,wins:10},
+{team:'Oregon State',year:2007,wins:9},
+{team:'Oregon State',year:2010,wins:7},
+{team:'Oregon State',year:2012,wins:10},
+{team:'Oregon State',year:2014,wins:8},
+{team:'Oregon State',year:2016,wins:7},
+{team:'Oregon State',year:2018,wins:8},
+{team:'Oregon State',year:2021,wins:10},
+{team:'Oregon State',year:2023,wins:7},
+{team:'Penn State',year:1982,wins:10},
+{team:'Penn State',year:2008,wins:12},
+{team:'Penn State',year:2013,wins:10},
+{team:'Penn State',year:2015,wins:10},
+{team:'Penn State',year:2017,wins:12},
+{team:'Penn State',year:2019,wins:13},
+{team:'Penn State',year:2020,wins:10},
+{team:'Penn State',year:2024,wins:11},
+{team:'Pittsburgh',year:2009,wins:10},
+{team:'Pittsburgh',year:2015,wins:8},
+{team:'Purdue',year:2008,wins:6},
+{team:'Purdue',year:2011,wins:10},
+{team:'Purdue',year:2013,wins:7},
+{team:'Purdue',year:2015,wins:6},
+{team:'Purdue',year:2017,wins:6},
+{team:'Purdue',year:2019,wins:6},
+{team:'Purdue',year:2020,wins:5},
+{team:'Purdue',year:2024,wins:5},
+{team:'Rutgers',year:2006,wins:11},
+{team:'Rutgers',year:2018,wins:1},
+{team:'South Carolina',year:1989,wins:6},
+{team:'South Carolina',year:2010,wins:8},
+{team:'South Carolina',year:2012,wins:9},
+{team:'South Carolina',year:2014,wins:9},
+{team:'South Carolina',year:2016,wins:10},
+{team:'South Carolina',year:2018,wins:7},
+{team:'South Carolina',year:2021,wins:8},
+{team:'South Carolina',year:2023,wins:8},
+{team:'Syracuse',year:1982,wins:10},
+{team:'Syracuse',year:2010,wins:7},
+{team:'Syracuse',year:2012,wins:5},
+{team:'Syracuse',year:2014,wins:5},
+{team:'Syracuse',year:2016,wins:7},
+{team:'Syracuse',year:2018,wins:6},
+{team:'Syracuse',year:2021,wins:10},
+{team:'Syracuse',year:2023,wins:7},
+{team:'TCU',year:2008,wins:5},
+{team:'TCU',year:2011,wins:5},
+{team:'TCU',year:2013,wins:6},
+{team:'TCU',year:2015,wins:6},
+{team:'TCU',year:2017,wins:8},
+{team:'TCU',year:2019,wins:8},
+{team:'TCU',year:2020,wins:8},
+{team:'TCU',year:2024,wins:6},
+{team:'Tennessee',year:2007,wins:9},
+{team:'Tennessee',year:2010,wins:7},
+{team:'Tennessee',year:2012,wins:8},
+{team:'Tennessee',year:2014,wins:5},
+{team:'Tennessee',year:2016,wins:5},
+{team:'Tennessee',year:2018,wins:7},
+{team:'Tennessee',year:2021,wins:7},
+{team:'Tennessee',year:2023,wins:6},
+{team:'Texas',year:1981,wins:8},
+{team:'Texas',year:2008,wins:10},
+{team:'Texas',year:2011,wins:9},
+{team:'Texas',year:2013,wins:11},
+{team:'Texas',year:2015,wins:12},
+{team:'Texas',year:2017,wins:11},
+{team:'Texas',year:2020,wins:13},
+{team:'Texas',year:2024,wins:11},
+{team:'Texas A&M',year:1984,wins:7},
+{team:'Texas A&M',year:2008,wins:6},
+{team:'Texas A&M',year:2011,wins:7},
+{team:'Texas A&M',year:2013,wins:6},
+{team:'Texas A&M',year:2015,wins:5},
+{team:'Texas A&M',year:2017,wins:9},
+{team:'Texas A&M',year:2019,wins:10},
+{team:'Texas A&M',year:2020,wins:9},
+{team:'UCF',year:1997,wins:7},
+{team:'UCF',year:2008,wins:10},
+{team:'UCF',year:2011,wins:8},
+{team:'UCF',year:2013,wins:9},
+{team:'UCF',year:2015,wins:5},
+{team:'UCF',year:2017,wins:5},
+{team:'UCF',year:2019,wins:5},
+{team:'UCF',year:2020,wins:10},
+{team:'USC',year:1992,wins:12},
+{team:'USC',year:2007,wins:12},
+{team:'USC',year:2010,wins:10},
+{team:'USC',year:2012,wins:11},
+{team:'USC',year:2014,wins:10},
+{team:'USC',year:2016,wins:10},
+{team:'USC',year:2018,wins:13},
+{team:'USC',year:2021,wins:13},
+{team:'Utah',year:1992,wins:11},
+{team:'Utah',year:2007,wins:11},
+{team:'Utah',year:2010,wins:11},
+{team:'Utah',year:2012,wins:9},
+{team:'Utah',year:2016,wins:13},
+{team:'Utah',year:2018,wins:12},
+{team:'Utah',year:2021,wins:13},
+{team:'Utah',year:2023,wins:11},
+{team:'Virginia',year:2007,wins:7},
+{team:'Virginia',year:2010,wins:3},
+{team:'Virginia',year:2012,wins:3},
+{team:'Virginia',year:2014,wins:7},
+{team:'Virginia',year:2016,wins:4},
+{team:'Virginia',year:2018,wins:7},
+{team:'Virginia',year:2021,wins:5},
+{team:'Virginia',year:2023,wins:4},
+{team:'Virginia Tech',year:1984,wins:3},
+{team:'Virginia Tech',year:2008,wins:8},
+{team:'Virginia Tech',year:2011,wins:8},
+{team:'Virginia Tech',year:2013,wins:5},
+{team:'Virginia Tech',year:2015,wins:6},
+{team:'Virginia Tech',year:2017,wins:5},
+{team:'Virginia Tech',year:2019,wins:9},
+{team:'Virginia Tech',year:2024,wins:6},
+{team:'Washington',year:2007,wins:12},
+{team:'Washington',year:2010,wins:13},
+{team:'Washington',year:2012,wins:9},
+{team:'Washington',year:2014,wins:12},
+{team:'Washington',year:2016,wins:12},
+{team:'Washington',year:2018,wins:13},
+{team:'Washington',year:2021,wins:12},
+{team:'Washington',year:2023,wins:13},
+{team:'Washington State',year:1993,wins:9},
+{team:'Washington State',year:2008,wins:10},
+{team:'Washington State',year:2011,wins:8},
+{team:'Washington State',year:2013,wins:10},
+{team:'Washington State',year:2017,wins:9},
+{team:'Washington State',year:2019,wins:9},
+{team:'Washington State',year:2020,wins:7},
+{team:'Washington State',year:2024,wins:8},
+{team:'West Virginia',year:1999,wins:12},
+{team:'West Virginia',year:2008,wins:6},
+{team:'West Virginia',year:2011,wins:10},
+{team:'West Virginia',year:2013,wins:7},
+{team:'West Virginia',year:2015,wins:6},
+{team:'West Virginia',year:2019,wins:7},
+{team:'West Virginia',year:2020,wins:9},
+{team:'West Virginia',year:2024,wins:8},
+{team:'Wisconsin',year:1990,wins:10},
+{team:'Wisconsin',year:2008,wins:5},
+{team:'Wisconsin',year:2013,wins:6},
+{team:'Wisconsin',year:2015,wins:9},
+{team:'Wisconsin',year:2017,wins:6},
+{team:'Wisconsin',year:2019,wins:5},
+{team:'Wisconsin',year:2020,wins:5},
+{team:'Wisconsin',year:2024,wins:10}
+];
+
+// ===== Game State & Logic =====
+let streak = 0;
+let best = Number(localStorage.getItem('cfb_hilo_best')||0);
+let left = null, right = null;
+let locked = false;
+
+function setBest(n){ best = Math.max(best, n); localStorage.setItem('cfb_hilo_best', best); el('best').textContent = best; }
+function setStreak(n){ streak = n; el('streak').textContent = streak; setBest(streak); }
+
+function pickTwo(){
+  if(DATA.length < 2) return [null,null];
+  let a = sample(DATA), b = sample(DATA);
+  let guard = 0;
+  while((b.team===a.team && b.year===a.year) && guard++ < 50){ b = sample(DATA); }
+  return [a,b];
+}
+
+function renderSide(prefix, row, showWins){
+  el(prefix+'Name').textContent = formatTeamYear(row);
+  el(prefix+'Meta').textContent = row.team;
+  const v = el(prefix+'Value');
+  v.textContent = showWins ? formatWins(row.wins) : '';
+  v.classList.toggle('hidden', !showWins);
+  const card = el(prefix+'Card');
+  card.classList.remove('win','lose','revealed','swap-left','slide-in','pop');
+  void card.offsetWidth;
+  card.classList.add(showWins ? 'pop' : 'slide-in');
+  setTimeout(()=>card.classList.remove('pop'), 350);
+}
+
+function difficultyStage(){
+  if(streak <= 4) return 'easy';
+  if(streak <= 9) return 'medium';
+  return 'hard';
+}
+
+function spawnInitial(){
+  setStreak(0);
+  const [a,b] = pickTwo();
+  left = a; right = b;
+  renderSide('left', left, true);
+  renderSide('right', right, false);
+}
+
+function spawnNext(){
+  left = right;
+  let stage = difficultyStage();
+  let candidate = sample(DATA), attempts=0;
+  const diff = (x,y)=>Math.abs(x.wins - y.wins);
+  while(attempts++ < 250){
+    candidate = sample(DATA);
+    if(candidate.team===left.team && candidate.year===left.year) continue;
+    const d = diff(candidate,left);
+    if(stage==='easy' && d >= 3) break;
+    if(stage==='medium' && d >= 1 && d <= 6) break;
+    if(stage==='hard' && d >= 0 && d <= 3) break; // include ties for high streaks
+  }
+  right = candidate;
+  renderSide('left', left, true);
+  renderSide('right', right, false);
+}
+
+function revealRight(isCorrect){
+  const rc = el('rightCard');
+  rc.classList.add('revealed');
+  el('rightValue').textContent = formatWins(right.wins);
+  el('rightValue').classList.remove('hidden');
+  rc.classList.add(isCorrect ? 'win' : 'lose');
+  toast(isCorrect ? 'Correct!' : 'Tough one!');
+}
+
+function handleGuess(guessHigher){
+  if(locked || !left || !right) return;
+  locked = true;
+  const isHigher = right.wins > left.wins;
+  const isTie = right.wins === left.wins; // ties count as correct
+  const correct = isTie || (guessHigher && isHigher) || (!guessHigher && !isHigher);
+  revealRight(correct);
+  setTimeout(()=>{
+    if(correct){
+      setStreak(streak+1);
+      el('leftCard').classList.add('swap-left');
+      setTimeout(()=>{ renderSide('left', right, true); spawnNext(); locked = false; }, 320);
+    } else {
+      setStreak(0);
+      setTimeout(()=>{ spawnInitial(); locked = false; }, 420);
+    }
+  }, 550);
+}
+
+// ===== Tiny Self-Tests =====
+(function tests(){
+  console.assert(formatWins(1)==='1 win','singular wins failed');
+  console.assert(formatWins(3)==='3 wins','plural wins failed');
+  const tieLeft={team:'A',year:2000,wins:10}, tieRight={team:'B',year:2001,wins:10};
+  const tieCorrect = (tieRight.wins===tieLeft.wins) || (true && (tieRight.wins>tieLeft.wins)) || (!true && !(tieRight.wins>tieLeft.wins));
+  console.assert(tieCorrect===true,'tie should be correct');
+})();
+
+// ===== Wire controls & boot =====
+(function init(){
+  el('best').textContent = best;
+  el('btnHigher').addEventListener('click', ()=>handleGuess(true));
+  el('btnLower').addEventListener('click', ()=>handleGuess(false));
+  el('btnReset').addEventListener('click', ()=>{ localStorage.removeItem('cfb_hilo_best'); best=0; el('best').textContent='0'; spawnInitial(); });
+  spawnInitial();
+})();
+</script>
+</body>
+</html>
