@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>College Football Connections — ExpertNIL</title>
+<style>
+  :root{
+    --bg:#1a1a1a; --card:#111; --ink:#eaeaea; --muted:#a7a7a7; --accent:#ffffff;
+    --line:#2a2a2a; --brand:#8affc1; --warn:#ffd166; --danger:#ff5c5c; --ok:#8aff8a;
+    --tile:#141414; --tileHover:#161616;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";line-height:1.45;padding:22px}
+  .logo{max-width:240px;opacity:.95;margin:6px 0 18px 4px}
+  .card{background:var(--card);border-radius:18px;padding:18px;border:1px solid var(--line);box-shadow:0 10px 40px rgba(0,0,0,.35)}
+  h1{margin:6px 0 12px;font-size:26px;letter-spacing:.2px}
+  .subtitle{font-size:13px;color:var(--muted);margin-bottom:10px}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 10px}
+  .button{padding:12px 14px;border-radius:14px;border:1px solid #2d2d2d;background:var(--accent);color:#000;font-weight:800;cursor:pointer}
+  .button.ghost{background:#171717;color:var(--ink)}
+  .button.warn{background:var(--warn);color:#000;border-color:#7a5b00}
+  .button.danger{background:#2a1212;color:#ffbdbd;border-color:#612}
+  .button:disabled{opacity:.5;cursor:not-allowed}
+  .status{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .chip{background:#1d1d1d;border:1px solid var(--line);padding:6px 12px;border-radius:999px;font-size:13px;color:#a7a7a7}
+  .chip b{color:var(--ink)}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0 6px}
+  .tile{
+    background:var(--tile); border:1px solid var(--line); border-radius:14px; min-height:68px;
+    padding:10px 12px; display:flex; align-items:center; justify-content:center; text-align:center;
+    font-weight:800; letter-spacing:.2px; cursor:pointer; position:relative; user-select:none;
+    transition:transform .08s ease, background .12s ease, border-color .15s ease;
+  }
+  .tile:hover{background:var(--tileHover)}
+  .tile.disabled{opacity:.3; pointer-events:none}
+  .tile.solved{visibility:hidden}
+  .tile.selected{
+    outline: 2px solid transparent;
+    animation: greenPulse 900ms ease-out both;
+    box-shadow:0 0 0 2px rgba(138,255,193,.7) inset, 0 0 20px rgba(138,255,193,.12);
+    border-color:#275;
+  }
+  @keyframes greenPulse{
+    0%{box-shadow:0 0 0 2px rgba(138,255,193,.0) inset}
+    25%{box-shadow:0 0 0 3px rgba(138,255,193,.85) inset, 0 0 22px rgba(138,255,193,.35)}
+    100%{box-shadow:0 0 0 2px rgba(138,255,193,.7) inset, 0 0 20px rgba(138,255,193,.12)}
+  }
+  .tile.shake{animation:shake .38s ease-in-out}
+  @keyframes shake{
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-6px)}
+    40%{transform:translateX(5px)}
+    60%{transform:translateX(-4px)}
+    80%{transform:translateX(3px)}
+  }
+  .tile.ok{background:rgba(22,35,22,.9); border-color:#2e6; box-shadow:0 0 0 3px rgba(138,255,138,.35) inset, 0 0 30px rgba(138,255,138,.15)}
+  .tile.bad{background:rgba(40,14,14,.92); border-color:#a22; box-shadow:0 0 0 3px rgba(255,92,92,.35) inset, 0 0 30px rgba(255,92,92,.15)}
+
+  .divider{height:1px;background:var(--line);margin:12px 0}
+  .solved-wrap{display:flex;flex-direction:column;gap:8px}
+  .solved-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .badge{font-size:11px;color:#121212;background:var(--brand);padding:4px 8px;border-radius:999px;font-weight:900;letter-spacing:.4px}
+  .solved-cat{font-size:13px;color:var(--muted)}
+  .solved-items{font-size:13px;color:var(--ink)}
+
+  .footer{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px}
+  .hint{font-size:12px;color:var(--muted)}
+  .toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#0f1a12;border:1px solid #234;color:#caffca;border-radius:12px;padding:10px 14px;font-weight:700;opacity:0;pointer-events:none}
+  .toast.show{animation:fade .8s ease-out}
+  @keyframes fade{0%{opacity:0;transform:translate(-50%,-6px)}20%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0}}
+
+  @media (max-width:640px){
+    .tile{min-height:62px;font-size:14px}
+    h1{font-size:22px}
+  }
+</style>
+</head>
+<body>
+  <img class="logo" src="logo.png" alt="ExpertNIL"/>
+  <section class="card">
+    <h1>College Football Connections — <span style="color: var(--brand); font-weight: 900;">ExpertNIL</span></h1>
+    <div class="subtitle">Select <b>four</b> related tiles, then press <b>Match</b>. You have <b>4 downs</b> (errors) before you lose. Categories reveal when solved or when you choose to reveal answers.</div>
+
+    <div class="controls">
+      <button class="button" id="btnMatch">Match</button>
+      <button class="button ghost" id="btnShuffle">Shuffle</button>
+      <button class="button ghost" id="btnReset">Reset</button>
+      <button class="button warn" id="btnReveal">Reveal Answers</button>
+      <span class="chip">Downs left: <b id="downs">4</b></span>
+    </div>
+
+    <div id="grid" class="grid"></div>
+
+    <div class="divider"></div>
+
+    <div class="solved-wrap" id="solvedWrap">
+      <!-- solved categories appear here -->
+    </div>
+
+    <div class="footer">
+      <span class="hint">Tip: Wrong match shakes & turns red and costs a down. Correct sets lock in & announce the category below.</span>
+    </div>
+  </section>
+
+  <div class="toast" id="toast">Nice!</div>
+
+<script>
+// ===== Utilities =====
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+const el = id => document.getElementById(id);
+const toast = (msg)=>{ const t=el('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 900); };
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+// ===== Dataset (the 4 hidden categories with 4 items each) =====
+const CATEGORIES = [
+  {
+    name: "Heisman Winners Who Later Became NFL MVPs",
+    key: "heisman_mvp",
+    items: ["Cam Newton","Lamar Jackson","Barry Sanders","Marcus Allen"]
+  },
+  {
+    name: "Florida State Legends",
+    key: "fsu_legends",
+    items: ["Jameis Winston","Deion Sanders","Jalen Ramsey","Derrick Brooks"]
+  },
+  {
+    name: "Cinderella Seasons",
+    key: "cinderellas",
+    items: ["Boise State (2006-2009)","Cincinnati (2021)","TCU (2022)","Hawaii (2006-2007)"]
+  },
+  {
+    name: "All-Time College Football Dynasties",
+    key: "dynasties",
+    items: ["Alabama (2009-2020)","Florida State (1990’s)","USC (2002-2008)","Nebraska (1990s)"]
+  }
+];
+
+// Build a reverse lookup for validation
+const ITEM_TO_KEY = {};
+CATEGORIES.forEach(cat => cat.items.forEach(it => ITEM_TO_KEY[it]=cat.key));
+
+// ===== Game State =====
+let downs = 4;
+let selected = new Set();
+let solvedKeys = new Set();
+let tiles = []; // {id, text, key, solved:false}
+
+function initGame(){
+  downs = 4; selected.clear(); solvedKeys.clear();
+  el('downs').textContent = String(downs);
+  const pool = CATEGORIES.flatMap(cat => cat.items.map(txt => ({ id: crypto.randomUUID(), text: txt, key: cat.key, solved:false })));
+  tiles = shuffle(pool);
+  renderGrid();
+  renderSolved();
+  enableInputs(true);
+}
+
+function renderGrid(){
+  const grid = el('grid');
+  grid.innerHTML = '';
+  tiles.forEach(tile => {
+    const div = document.createElement('div');
+    div.className = 'tile';
+    div.textContent = tile.text;
+    div.dataset.id = tile.id;
+    if(tile.solved) div.classList.add('solved');
+    grid.appendChild(div);
+  });
+}
+
+function renderSolved(){
+  const wrap = el('solvedWrap');
+  wrap.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    if(solvedKeys.has(cat.key)){
+      const row = document.createElement('div');
+      row.className = 'solved-row';
+      const badge = document.createElement('span');
+      badge.className='badge';
+      badge.textContent='Solved';
+      const catTitle = document.createElement('span');
+      catTitle.className='solved-cat';
+      catTitle.textContent = cat.name + ':';
+      const items = document.createElement('span');
+      items.className='solved-items';
+      items.textContent = ' ' + cat.items.join(' • ');
+      row.appendChild(badge); row.appendChild(catTitle); row.appendChild(items);
+      wrap.appendChild(row);
+    }
+  });
+}
+
+function currentSelection(){
+  return tiles.filter(t => selected.has(t.id) && !t.solved);
+}
+
+function toggleSelect(id){
+  const t = tiles.find(x => x.id===id);
+  if(!t || t.solved) return;
+  if(selected.has(id)){
+    selected.delete(id);
+  } else {
+    if(currentSelection().length>=4) return; // limit to 4
+    selected.add(id);
+  }
+  updateTileClasses();
+}
+
+function updateTileClasses(){
+  $$('#grid .tile').forEach(div => {
+    const id = div.dataset.id;
+    const t = tiles.find(x => x.id===id);
+    div.classList.remove('selected','ok','bad','shake');
+    if(t.solved){ div.classList.add('solved'); div.classList.remove('selected'); return; }
+    if(selected.has(id)) div.classList.add('selected');
+  });
+}
+
+function enableInputs(on){
+  el('btnMatch').disabled = !on;
+  el('btnShuffle').disabled = !on;
+  $$('#grid .tile').forEach(div => {
+    if(on) div.classList.remove('disabled'); else div.classList.add('disabled');
+  });
+}
+
+function checkMatch(){
+  const sel = currentSelection();
+  if(sel.length!==4){ toast('Pick four tiles first'); return; }
+  // If all share the same key, it's correct.
+  const key = sel[0].key;
+  const allSame = sel.every(t => t.key===key);
+  if(allSame){
+    // success animation
+    sel.forEach(s => {
+      const div = $(`#grid .tile[data-id="${s.id}"]`);
+      div.classList.add('shake','ok');
+    });
+    toast('Connection!');
+    setTimeout(()=>{
+      // lock these as solved, hide them; reveal category at bottom
+      sel.forEach(s => s.solved=true);
+      solvedKeys.add(key);
+      selected.clear();
+      updateTileClasses();
+      renderSolved();
+      // If all solved -> win
+      if(solvedKeys.size===CATEGORIES.length){
+        toast('You solved them all!');
+        enableInputs(false);
+      }
+    }, 380);
+  } else {
+    // wrong — shake red, subtract a down
+    sel.forEach(s => {
+      const div = $(`#grid .tile[data-id="${s.id}"]`);
+      div.classList.add('shake','bad');
+      setTimeout(()=>div.classList.remove('bad'), 420);
+    });
+    selected.clear();
+    updateTileClasses();
+    downs = Math.max(0, downs-1);
+    el('downs').textContent = String(downs);
+    toast(`Nope — ${downs} down${downs===1?'':'s'} left`);
+    if(downs===0){
+      // lose: disable & reveal answers button stands out, optionally auto reveal
+      enableInputs(false);
+    }
+  }
+}
+
+function shuffleGrid(){
+  // Keep unsolved tiles visible tiles shuffled; solved remain hidden (we keep positions, but we can reshuffle all unsolved to mimic NYT behavior)
+  const unsolved = tiles.filter(t => !t.solved);
+  shuffle(unsolved);
+  let i=0;
+  tiles = tiles.map(t => t.solved ? t : unsolved[i++]);
+  renderGrid();
+  bindTileClicks();
+  updateTileClasses();
+  toast('Shuffled');
+}
+
+function revealAll(){
+  // Show every category row below; hide all tiles
+  CATEGORIES.forEach(cat => solvedKeys.add(cat.key));
+  tiles.forEach(t => t.solved=true);
+  renderGrid();
+  renderSolved();
+  enableInputs(false);
+  toast('Answers revealed');
+}
+
+// ===== Wire up =====
+function bindTileClicks(){
+  $$('#grid .tile').forEach(div => {
+    div.addEventListener('click', () => toggleSelect(div.dataset.id));
+  });
+}
+
+el('btnMatch').addEventListener('click', checkMatch);
+el('btnShuffle').addEventListener('click', shuffleGrid);
+el('btnReset').addEventListener('click', initGame);
+el('btnReveal').addEventListener('click', revealAll);
+
+// Boot
+initGame();
+bindTileClicks();
+</script>
+</body>
+</html>
