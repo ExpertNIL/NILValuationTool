@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grade My NIL Offer</title>
+<style>
+:root{--bg:#0f0f11;--panel:#141418;--ink:#e8e8ec;--muted:#a2a2ad;--line:#23232a;--neon-green:#39ff88;--neon-amber:#ffd166;--neon-red:#ff4d6d;--accent:#fff}
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;background:radial-gradient(1200px 800px at 10% -10%,#1a1a22 0%,#0d0d10 55%,#0a0a0c 100%);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.5;padding:28px;overflow-x:hidden}.shell{max-width:1160px;margin:0 auto}.brand{display:flex;align-items:center;gap:14px;margin-bottom:18px}.brand img{height:40px;opacity:.95}.brand h1{margin:0;font-weight:800;letter-spacing:.2px}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:24px}@media(max-width:980px){.grid{grid-template-columns:1fr}}.card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 18px 60px rgba(0,0,0,.35)}.card h2{margin:0 0 12px;letter-spacing:.2px}label{display:block;font-size:12px;color:var(--muted);margin:12px 0 6px}select,input{width:100%;padding:12px 14px;border-radius:12px;background:#0f0f13;color:var(--ink);border:1px solid #2a2a31;outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}.row{display:flex;gap:12px}.row>*{flex:1}.btn{margin-top:16px;padding:14px 18px;border-radius:14px;border:1px solid #2a2a31;background:var(--accent);color:#111;font-weight:700;cursor:pointer;transition:.15s transform ease}.btn:active{transform:translateY(1px)}.ring-wrap{display:grid;place-items:center;padding:10px}.ring{position:relative;width:260px;height:260px}svg{display:block}.ring .label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transform:translateY(2px)}.grade-text{font-size:88px;font-weight:900;letter-spacing:.6px;line-height:1}.score-text{font-size:14px;color:var(--muted);margin-top:2px}.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:12px}.dot{width:10px;height:10px;border-radius:50%}.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}@media(max-width:520px){.stats{grid-template-columns:1fr}}.stat{display:flex;flex-direction:column;gap:4px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:12px}.big{font-weight:700}.range-line{height:8px;border-radius:999px;background:linear-gradient(90deg,#6ee7b7,#fcd34d,#fda4af);border:1px solid var(--line)}.range-wrap{margin-top:10px}.hdr{display:flex;align-items:center;justify-content:flex-start;gap:12px;margin-bottom:6px}
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="brand">
+      <img src="logo.png" alt="ExpertNIL"/>
+      <h1>Grade My NIL Offer</h1>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Deal Inputs</h2>
+        <div class="row">
+          <div>
+            <label>Position</label>
+            <select id="position">
+              <option value="QB">QB — Quarterback</option>
+              <option value="RB">RB — Running Back</option>
+              <option value="WR" selected>WR — Wide Receiver</option>
+              <option value="TE">TE — Tight End</option>
+              <option value="OT">OT — Offensive Tackle</option>
+              <option value="IOL">IOL — Interior OL</option>
+              <option value="EDGE">EDGE — Edge</option>
+              <option value="DT">DT — Defensive Tackle</option>
+              <option value="LB">LB — Linebacker</option>
+              <option value="DB">DB — Defensive Back</option>
+              <option value="S">S — Safety</option>
+              <option value="ATH">ATH — Athlete</option>
+            </select>
+          </div>
+          <div>
+            <label>Rating Tier</label>
+            <select id="tier">
+              <option value="Superstar">Superstar</option>
+              <option value="Elite" selected>Elite</option>
+              <option value="Starter">Starter</option>
+              <option value="Backup">Backup</option>
+              <option value="Depth">Depth</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>Eligibility Left (years)</label>
+            <select id="eligibility">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4" selected>4</option>
+            </select>
+          </div>
+          <div>
+            <label>Amount $ Offered</label>
+            <input id="offer" type="text" inputmode="decimal" placeholder="e.g., 350000 or $350k" />
+          </div>
+        </div>
+        <button class="btn" id="gradeBtn">Grade my NIL Offer</button>
+      </section>
+
+      <section class="card">
+        <div class="hdr">
+          <span class="badge"><span class="dot" id="dot" style="background:var(--neon-amber)"></span><span id="verdict">—</span></span>
+        </div>
+        <div class="ring-wrap">
+          <div class="ring">
+            <svg width="260" height="260" viewBox="-16 -16 152 152" style="overflow:visible" aria-hidden="true">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#1f1f28" stroke-width="12"/>
+              <circle id="glow" cx="60" cy="60" r="52" fill="none" stroke="#ffd166" stroke-width="12" opacity=".02"/>
+              <circle id="progress" cx="60" cy="60" r="52" fill="none" stroke="#ffd166" stroke-linecap="round" stroke-width="12" stroke-dasharray="326.72" stroke-dashoffset="326.72"/>
+            </svg>
+            <div class="label">
+              <div class="grade-text" id="grade">—</div>
+              <div class="score-text" id="score">Score —</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="muted">You Offered</div>
+            <div class="big" id="youOffered">—</div>
+          </div>
+          <div class="stat">
+            <div class="muted">Estimated Value (Range)</div>
+            <div class="big" id="estRange">—</div>
+          </div>
+        </div>
+
+        <div class="range-wrap">
+          <div class="hint">Range visualization</div>
+          <div class="range-line"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+<script>
+/*! obfuscated runtime - functional equivalent of original logic */
+(function(){
+  // short names for constants & DOM nodes
+  const P={QB:1.5,RB:1,WR:1.25,TE:1,OT:1.25,IOL:1,EDGE:1.25,DT:1,LB:1.25,DB:1,S:1,ATH:1.25};
+  const T={Superstar:[1500000,2500000],Elite:[800000,1500000],Starter:[200000,800000],Backup:[50000,200000],Depth:[5000,40000]};
+  const $=(id)=>document.getElementById(id);
+  const rEl=$('progress'),gEl=$('glow'),LG=$('grade'),LS=$('score'),D=$('dot'),V=$('verdict');
+  const C = 2*Math.PI*52; rEl.setAttribute('stroke-dasharray',C.toFixed(2)); rEl.setAttribute('stroke-dashoffset',C.toFixed(2));
+  // tiny helpers (minified names)
+  const e=(y)=>{ const n=Math.max(1,Math.min(4,Number(y)||1)); return Math.min(1.6,1+0.15*(n-1)); };
+  const f=(n)=>"$"+Math.round(n).toLocaleString();
+  const pM=(raw)=>{ if(raw==null) return 0; let s=String(raw).trim().toLowerCase(); if(!s) return 0; let m=1; if(s.endsWith('k')){m=1e3;s=s.slice(0,-1)} if(s.endsWith('m')){m=1e6;s=s.slice(0,-1)} s=s.replace(/[^0-9.]/g,''); const v=Number(s); return isNaN(v)?0:v*m; };
+  const tL=(sc)=>{ const s=Math.max(0,Math.min(100,Math.round(sc))); if(s>=97) return 'A+'; if(s>=93) return 'A'; if(s>=90) return 'A-'; if(s>=87) return 'B+'; if(s>=83) return 'B'; if(s>=80) return 'B-'; if(s>=77) return 'C+'; if(s>=73) return 'C'; if(s>=70) return 'C-'; if(s>=67) return 'D+'; if(s>=63) return 'D'; if(s>=60) return 'D-'; return 'F'; };
+  const bC=(ltr)=>{ const r=getComputedStyle(document.documentElement); const G=new Set(['A+','A','A-','B+','B']); const A=new Set(['B-','C+','C','C-']); if(G.has(ltr)) return r.getPropertyValue('--neon-green').trim(); if(A.has(ltr)) return r.getPropertyValue('--neon-amber').trim(); return r.getPropertyValue('--neon-red').trim(); };
+
+  // scoring logic (minified)
+  function sO(offer,lo,hi){
+    const mid=(lo+hi)/2;
+    if(!(offer>0)&&!(lo>0)) return {score:0,verdict:'—',delta:'—'};
+    let verdict,score; const delta=offer-mid;
+    if(offer<lo){ const sp=Math.max(0,Math.min(1,(lo-offer)/lo)); score=92+8*sp; verdict='Underpay'; }
+    else if(offer<=hi){ const edge=Math.max(1,(hi-lo)/2); const closeness=1-Math.abs(offer-mid)/edge; score=90+10*closeness; verdict='Great Offer'; }
+    else { const op=Math.max(0,(offer-hi)/hi); score=90-140*op; verdict='Overpay'; }
+    score=Math.max(0,Math.min(100,score)); return {score,verdict,delta:(delta>=0?'+':'')+f(delta)};
+  }
+
+  // ring helpers
+  function setRing(pct,col){ const t=Math.max(0,Math.min(100,pct)); const off=C*(1-t/100); rEl.setAttribute('stroke',col); gEl.setAttribute('stroke',col); rEl.style.filter=`drop-shadow(0 0 2px ${col}) drop-shadow(0 0 4px ${col})`; rEl.setAttribute('stroke-dashoffset',off); }
+  function animTo(pct,col){
+    const t=Math.max(0,Math.min(100,pct)); const target=C*(1-t/100); rEl.setAttribute('stroke-dashoffset',C.toFixed(2));
+    const dur=1200; const st=performance.now(); rEl.setAttribute('stroke',col); gEl.setAttribute('stroke',col); rEl.style.filter=`drop-shadow(0 0 2px ${col}) drop-shadow(0 0 4px ${col})`;
+    (function step(ts){ const p=Math.min(1,(ts-st)/dur); const e=0.5-Math.cos(Math.PI*p)/2; const off=C+(target-C)*e; rEl.setAttribute('stroke-dashoffset',off); if(p<1) requestAnimationFrame(step); })(st);
+  }
+
+  // main grade execution (minified)
+  function G(skipAnim){
+    const pos=$( 'position' ).value.trim().toUpperCase();
+    const tier=$( 'tier' ).value.trim();
+    const yrs=Number($( 'eligibility' ).value);
+    const offer=pM($( 'offer' ).value);
+    const mult=P[pos]||1; const base=T[tier]; if(!base) return;
+    const lo=base[0]*mult*e(yrs), hi=base[1]*mult*e(yrs);
+    const res=sO(offer,lo,hi); const letter=tL(res.score); const color=bC(letter);
+    if(skipAnim) setRing(res.score,color); else animTo(res.score,color);
+    $( 'youOffered' ).textContent = offer>0?f(offer):'—';
+    $( 'estRange' ).textContent = `${f(lo)} – ${f(hi)}`;
+    LG.textContent = offer>0?letter:'—';
+    LS.textContent = offer>0?`Score ${Math.round(res.score)}/100`:'Score —';
+    V.textContent = offer>0?res.verdict:'—';
+    D.style.background = color;
+  }
+
+  // event wiring (minified)
+  $('gradeBtn').addEventListener('click',()=>G(false));
+  ['position','tier','eligibility','offer'].forEach(id=>{
+    const el=$(id);
+    el.addEventListener('input',()=>G(true));
+    el.addEventListener('change',()=>G(true));
+  });
+
+  // offer formatting
+  const OF=$('offer');
+  OF.addEventListener('blur',()=>{ const v=pM(OF.value); if(v>0) OF.value=f(v); });
+  OF.addEventListener('focus',()=>{ const s=OF.value||''; if(!s) return; const low=s.toLowerCase(); let raw=s; if(!(low.endsWith('k')||low.endsWith('m'))){ raw=raw.split('$').join(''); raw=raw.split(',').join(''); raw=raw.split(' ').join(''); } OF.value=raw; });
+
+  // init
+  LG.textContent='—'; LS.textContent='Score —';
+})();
+</script>
+</body>
+</html>
