@@ -2,18 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Grade My NIL Offer</title>
+<meta name="theme-color" content="#0a0a0c"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <style>
   :root{
     --bg:#0f0f11; --panel:#141418; --ink:#e8e8ec; --muted:#a2a2ad; --line:#23232a;
     --accent:#ffffff;
   }
   *{box-sizing:border-box}
-  html,body{height:100%}
-  body{ margin:0; background:radial-gradient(1200px 800px at 10% -10%,#1a1a22 0%,#0d0d10 55%,#0a0a0c 100%);
+  /* Fill dynamic mobile viewport and set solid fallback */
+  html,body{min-height:100svh; background-color:#0a0a0c;}
+  body{ margin:0; 
         color:var(--ink); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-        line-height:1.5; padding:28px; overflow-x:hidden; }
+        line-height:1.5; padding:28px; overflow-x:hidden;
+        padding-bottom: max(28px, env(safe-area-inset-bottom)); }
+
+  /* Put the gradient on a fixed layer so the iOS toolbar can't reveal a seam */
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(1200px 800px at 10% -10%, #1a1a22 0%, #0d0d10 55%, #0a0a0c 100%);
+  }
+
   .shell{max-width:1160px; margin:0 auto}
   .brand{display:flex; align-items:center; gap:14px; margin-bottom:18px}
   .brand img{height:40px; opacity:.95}
@@ -157,9 +168,9 @@ const fmt=n=>"$"+Math.round(n).toLocaleString();
 function parseMoney(r){if(!r)return 0;let s=String(r).toLowerCase().trim(),m=1;if(s.endsWith('k')){m=1e3;s=s.slice(0,-1);}if(s.endsWith('m')){m=1e6;s=s.slice(0,-1);}s=s.replace(/[^0-9.]/g,'');return Number(s)*m||0;}
 function toLetter(s){s=Math.round(s);if(s>=97)return'A+';if(s>=93)return'A';if(s>=90)return'A-';if(s>=87)return'B+';if(s>=83)return'B';if(s>=80)return'B-';if(s>=77)return'C+';if(s>=73)return'C';if(s>=70)return'C-';if(s>=67)return'D+';if(s>=63)return'D';if(s>=60)return'D-';return'F';}
 function bandColor(l){if(['A+','A','A-','B+','B'].includes(l))return'#00c853';if(['B-','C+','C','C-'].includes(l))return'#ffd54f';return'#ff5252';}
-function scoreOffer(o,l,h){const m=(l+h)/2;if(!(l>0&&h>l))return{score:0,verdict:'—'};if(!(o>0))return{score:0,verdict:'—'};let v,s;if(o<l){s=92+8*Math.min(1,(l-o)/l);v='Underpay';}else if(o<=h){s=95;v='Great Offer';}else{s=Math.max(0,90-140*((o-h)/h));v='Overpay';}return{score:Math.max(0,Math.min(100,s)),verdict:v};}
+function scoreOffer(o,l,h){if(!(l>0&&h>l))return{score:0,verdict:'—'};if(!(o>0))return{score:0,verdict:'—'};let v,s;if(o<l){s=92+8*Math.min(1,(l-o)/l);v='Underpay';}else if(o<=h){s=95;v='Great Offer';}else{s=Math.max(0,90-140*((o-h)/h));v='Overpay';}return{score:Math.max(0,Math.min(100,s)),verdict:v};}
 const CIRC=2*Math.PI*52;const ring=document.getElementById('progress'),grade=document.getElementById('grade'),scoreTxt=document.getElementById('score'),dot=document.getElementById('dot'),verdict=document.getElementById('verdict');
-function animateTo(p,c){const t=Math.max(0,Math.min(100,p)),target=CIRC*(1-t/100);const start=performance.now(),dur=1000;ring.setAttribute('stroke',c);function step(ts){const pr=Math.min(1,(ts-start)/dur);const off=CIRC*(1-pr*t/100);ring.setAttribute('stroke-dashoffset',off);if(pr<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
+function animateTo(p,c){const t=Math.max(0,Math.min(100,p)),start=performance.now(),dur=1000;ring.setAttribute('stroke',c);function step(ts){const pr=Math.min(1,(ts-start)/dur);const off=CIRC*(1-pr*t/100);ring.setAttribute('stroke-dashoffset',off);if(pr<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
 function gradeNow(a=false){const pos=document.getElementById('position').value.toUpperCase(),tier=document.getElementById('tier').value,yrs=document.getElementById('eligibility').value,o=parseMoney(document.getElementById('offer').value);const mult=POS_MULT[pos]||1,[lo,hi]=TIER_BASE[tier]||[0,0],ef=eligFactor(yrs);const low=lo*mult*ef,high=hi*mult*ef;const{score,verdict:v}=scoreOffer(o,low,high),l=toLetter(score),clr=bandColor(l);if(!a)animateTo(score,clr);else ring.setAttribute('stroke',clr);grade.textContent=o>0?l:'—';scoreTxt.textContent=o>0?`Score ${Math.round(score)}/100`:'Score —';verdict.textContent=o>0?v:'—';dot.style.background=clr;document.getElementById('youOffered').textContent=o>0?fmt(o):'—';}
 let __debounceId;
 function scheduleAnimate(){
@@ -171,17 +182,11 @@ function scheduleAnimate(){
   el.addEventListener('input', ()=>{ gradeNow(true); scheduleAnimate(); });
   el.addEventListener('change', ()=>{ gradeNow(true); scheduleAnimate(); });
 });
-
 document.getElementById('gradeBtn').addEventListener('click', ()=>gradeNow(false));
-
-// --- Silent sanity checks in console (no UI) ---
 (function(){
   try{
-    // Depth DB, 1y, $100 → Underpay (good)
     let pos='DB', tier='Depth', yrs=1, o=100; let [lo,hi]=TIER_BASE[tier]; let ef=eligFactor(yrs); let low=lo*POS_MULT[pos]*ef, high=hi*POS_MULT[pos]*ef; let r=scoreOffer(o,low,high); console.info('[TEST] Depth DB $100 →', r.verdict, toLetter(r.score));
-    // Backup DB, 1y, $100k → Overpay
     pos='DB'; tier='Backup'; yrs=1; o=100000; [lo,hi]=TIER_BASE[tier]; ef=eligFactor(yrs); low=lo*POS_MULT[pos]*ef; high=hi*POS_MULT[pos]*ef; r=scoreOffer(o,low,high); console.info('[TEST] Backup DB $100k →', r.verdict, toLetter(r.score));
-    // Starter LB, 2y, $500k → Should lean Overpay with new bands
     pos='LB'; tier='Starter'; yrs=2; o=500000; [lo,hi]=TIER_BASE[tier]; ef=eligFactor(yrs); low=lo*POS_MULT[pos]*ef; high=hi*POS_MULT[pos]*ef; r=scoreOffer(o,low,high); console.info('[TEST] Starter LB 2y $500k →', r.verdict, toLetter(r.score));
   }catch(e){ console.warn('Sanity tests skipped:', e); }
 })();
