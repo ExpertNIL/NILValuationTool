@@ -44,14 +44,11 @@
 </div>
 
 <script>
-/* corrected obfuscated script: fixed string-index usages so grade population works */
+/* corrected obfuscated script: fixed initial placeholders and string-index usages */
 (function(){
   var s=["position","tier","eligibility","offer","progress","grade","score","dot","verdict","youOffered","$","Score ","/100","—","Score —","Great Offer","Underpay","Overpay","QB","RB","WR","TE","OT","IOL","EDGE","DT","LB","DB","S","ATH","Superstar","Elite","Starter","Backup","Depth","addEventListener","input","change","click","value","textContent","getElementById","stroke","stroke-dashoffset","performance","requestAnimationFrame","setTimeout","clearTimeout","toUpperCase","round","Score "];
   function S(i){return s[i];}
-  // useful indexes (kept obfuscated but define constants for correct indexes)
   var IDX_textContent = 40; // "textContent"
-  var IDX_stroke = 42; // "stroke"
-  var IDX_dash = 43; // "stroke-dashoffset"
 
   // position multipliers and tier bands (min/max)
   var P={QB:1.5,RB:1,WR:1.25,TE:1,OT:1.25,IOL:1,EDGE:1.25,DT:1,LB:1.25,DB:1,S:1,ATH:1.25};
@@ -62,14 +59,15 @@
     Backup:[15000,75000],
     Depth:[1000,15000]
   };
+
   function eF(y){y=Number(y)||1; if(y<1) y=1; if(y>4) y=4; return Math.min(1.6,1+0.15*(y-1));}
   function fM(v){if(!v) return 0; var t=String(v).toLowerCase().trim(),m=1; if(t.endsWith("k")){m=1e3;t=t.slice(0,-1);} if(t.endsWith("m")){m=1e6;t=t.slice(0,-1);} t=t.replace(/[^0-9.]/g,''); return Number(t)*m||0;}
   function fmt(n){return s[10]+Math.round(n).toLocaleString();}
   function toLet(x){x=Math.round(x); if(x>=97) return "A+"; if(x>=93) return "A"; if(x>=90) return "A-"; if(x>=87) return "B+"; if(x>=83) return "B"; if(x>=80) return "B-"; if(x>=77) return "C+"; if(x>=73) return "C"; if(x>=70) return "C-"; if(x>=67) return "D+"; if(x>=63) return "D"; if(x>=60) return "D-"; return "F";}
   function bandCol(l){ if(['A+','A','A-','B+','B'].indexOf(l)>=0) return '#00c853'; if(['B-','C+','C','C-'].indexOf(l)>=0) return '#ffd54f'; return '#ff5252'; }
   function scoreOffer(o,l,h){
-    if(!(l>0&&h>l)) return {score:0,verdict:s[12]};
-    if(!(o>0)) return {score:0,verdict:s[12]};
+    if(!(l>0&&h>l)) return {score:0,verdict:s[13]};
+    if(!(o>0)) return {score:0,verdict:s[13]};
     var ssc,v;
     if(o<l){ ssc=92+8*Math.min(1,(l-o)/l); v=s[15]; }
     else if(o<=h){ ssc=95; v=s[14]; }
@@ -79,10 +77,10 @@
   var CIRC=2*Math.PI*52;
   var el = function(id){return document.getElementById(id);};
   var ring=el(S(4)), G=el(S(5)), Sc=el(S(6)), dot=el(S(7)), verdict=el(S(8)), youOff=el(S(9));
+
   function animTo(p,c){
-    var t=Math.max(0,Math.min(100,p)), target=CIRC*(1-t/100), st=performance.now(),dur=1000;
-    // set stroke color correctly
-    ring.setAttribute("stroke",c); // ring is circle with id "progress"
+    var t=Math.max(0,Math.min(100,p)), st=performance.now(),dur=1000;
+    ring.setAttribute("stroke",c);
     function step(ts){
       var pr=Math.min(1,(ts-st)/dur);
       var off=CIRC*(1-pr*t/100);
@@ -91,18 +89,21 @@
     }
     requestAnimationFrame(step);
   }
+
   function gradeNow(noAnimate){
     var pos=el(S(0)).value.toUpperCase(), tier=el(S(1)).value, yrs=el(S(2)).value, o=fM(el(S(3)).value);
     var mult=P[pos]||1; var band=T[tier]||[0,0]; var ef=eF(yrs); var low=band[0]*mult*ef, high=band[1]*mult*ef;
     var r=scoreOffer(o,low,high), ltr=toLet(r.score), clr=bandCol(ltr);
     if(!noAnimate) animTo(r.score,clr); else { ring.setAttribute("stroke",clr); ring.setAttribute("stroke-dashoffset", CIRC*(1-r.score/100)); }
-    // set textContent using correct key
-    G[s[IDX_textContent]]=(o>0?ltr:s[12]);
+
+    // Corrected empty-state placeholders: use s[13] ("—"), not s[12] ("/100")
+    G[s[IDX_textContent]]=(o>0?ltr:s[13]);
     Sc[s[IDX_textContent]]=(o>0?(s[11]+Math.round(r.score)+s[12]):s[13]);
-    verdict[s[IDX_textContent]]=(o>0?r.verdict:s[12]);
+    verdict[s[IDX_textContent]]=(o>0?r.verdict:s[13]);
     dot.style.background=clr;
-    youOff[s[IDX_textContent]]=(o>0?fmt(o):s[12]);
+    youOff[s[IDX_textContent]]=(o>0?fmt(o):s[13]);
   }
+
   var __d;
   function sched(){
     if(__d) clearTimeout(__d);
@@ -115,13 +116,12 @@
     eln.addEventListener("change",function(){gradeNow(true);sched();});
   });
   document.getElementById("gradeBtn").addEventListener("click",function(){gradeNow(false);});
-  // lightweight, silent console checks
+
   try{
     (function(){var pos='DB',t='Depth',y=1,o=100;var b=T[t],ef=eF(y),lo=b[0]*P[pos]*ef,hi=b[1]*P[pos]*ef;var r=scoreOffer(o,lo,hi);console.info('[TEST] Depth DB $100 →',r.verdict,toLet(r.score));})();
     (function(){var pos='DB',t='Backup',y=1,o=100000;var b=T[t],ef=eF(y),lo=b[0]*P[pos]*ef,hi=b[1]*P[pos]*ef;var r=scoreOffer(o,lo,hi);console.info('[TEST] Backup DB $100k →',r.verdict,toLet(r.score));})();
     (function(){var pos='LB',t='Starter',y=2,o=500000;var b=T[t],ef=eF(y),lo=b[0]*P[pos]*ef,hi=b[1]*P[pos]*ef;var r=scoreOffer(o,lo,hi);console.info('[TEST] Starter LB 2y $500k →',r.verdict,toLet(r.score));})();
   }catch(e){}
-  // initial populate
   gradeNow(false);
 })();
 </script>
