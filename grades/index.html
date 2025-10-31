@@ -44,7 +44,7 @@
 </div>
 
 <script>
-/* corrected obfuscated script: fixed initial placeholders and string-index usages */
+/* corrected obfuscated script: fixed placeholders + robust overpay/underpay logic */
 (function(){
   var s=["position","tier","eligibility","offer","progress","grade","score","dot","verdict","youOffered","$","Score ","/100","—","Score —","Great Offer","Underpay","Overpay","QB","RB","WR","TE","OT","IOL","EDGE","DT","LB","DB","S","ATH","Superstar","Elite","Starter","Backup","Depth","addEventListener","input","change","click","value","textContent","getElementById","stroke","stroke-dashoffset","performance","requestAnimationFrame","setTimeout","clearTimeout","toUpperCase","round","Score "];
   function S(i){return s[i];}
@@ -61,19 +61,40 @@
   };
 
   function eF(y){y=Number(y)||1; if(y<1) y=1; if(y>4) y=4; return Math.min(1.6,1+0.15*(y-1));}
-  function fM(v){if(!v) return 0; var t=String(v).toLowerCase().trim(),m=1; if(t.endsWith("k")){m=1e3;t=t.slice(0,-1);} if(t.endsWith("m")){m=1e6;t=t.slice(0,-1);} t=t.replace(/[^0-9.]/g,''); return Number(t)*m||0;}
+  function fM(v){
+    if(!v) return 0;
+    var t = String(v).toLowerCase().trim();
+    // normalize thin spaces etc.
+    t = t.replace(/\s+/g,'');
+    var m=1;
+    if(/k$/.test(t)){m=1e3; t=t.slice(0,-1);}
+    if(/m$/.test(t)){m=1e6; t=t.slice(0,-1);}
+    t=t.replace(/[^0-9.]/g,'');
+    var n = Number(t);
+    if(!isFinite(n)) n = 0;
+    return n*m;
+  }
   function fmt(n){return s[10]+Math.round(n).toLocaleString();}
   function toLet(x){x=Math.round(x); if(x>=97) return "A+"; if(x>=93) return "A"; if(x>=90) return "A-"; if(x>=87) return "B+"; if(x>=83) return "B"; if(x>=80) return "B-"; if(x>=77) return "C+"; if(x>=73) return "C"; if(x>=70) return "C-"; if(x>=67) return "D+"; if(x>=63) return "D"; if(x>=60) return "D-"; return "F";}
   function bandCol(l){ if(['A+','A','A-','B+','B'].indexOf(l)>=0) return '#00c853'; if(['B-','C+','C','C-'].indexOf(l)>=0) return '#ffd54f'; return '#ff5252'; }
-  function scoreOffer(o,l,h){
-    if(!(l>0&&h>l)) return {score:0,verdict:s[13]};
-    if(!(o>0)) return {score:0,verdict:s[13]};
-    var ssc,v;
-    if(o<l){ ssc=92+8*Math.min(1,(l-o)/l); v=s[15]; }
-    else if(o<=h){ ssc=95; v=s[14]; }
-    else { ssc=Math.max(0,90-140*((o-h)/h)); v=s[16]; }
-    return {score:Math.max(0,Math.min(100,ssc)),verdict:v};
+
+  // NEW: check Overpay first, then Underpay, else Great Offer
+  function scoreOffer(amount, low, high){
+    if(!(low>0 && high>low) || !(amount>0)) return {score:0,verdict:s[13]};
+    // overpay
+    if(amount > high){
+      var scOver = Math.max(0, 90 - 140 * ((amount - high) / high));
+      return {score:Math.max(0,Math.min(100,scOver)), verdict:s[16]};
+    }
+    // underpay
+    if(amount < low){
+      var scUnder = 92 + 8 * Math.min(1, (low - amount) / low);
+      return {score:Math.max(0,Math.min(100,scUnder)), verdict:s[15]};
+    }
+    // in-range
+    return {score:95, verdict:s[14]};
   }
+
   var CIRC=2*Math.PI*52;
   var el = function(id){return document.getElementById(id);};
   var ring=el(S(4)), G=el(S(5)), Sc=el(S(6)), dot=el(S(7)), verdict=el(S(8)), youOff=el(S(9));
@@ -96,7 +117,7 @@
     var r=scoreOffer(o,low,high), ltr=toLet(r.score), clr=bandCol(ltr);
     if(!noAnimate) animTo(r.score,clr); else { ring.setAttribute("stroke",clr); ring.setAttribute("stroke-dashoffset", CIRC*(1-r.score/100)); }
 
-    // Corrected empty-state placeholders: use s[13] ("—"), not s[12] ("/100")
+    // placeholders use s[13] ("—")
     G[s[IDX_textContent]]=(o>0?ltr:s[13]);
     Sc[s[IDX_textContent]]=(o>0?(s[11]+Math.round(r.score)+s[12]):s[13]);
     verdict[s[IDX_textContent]]=(o>0?r.verdict:s[13]);
